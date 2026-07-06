@@ -1,0 +1,20 @@
+{
+  "name": "workiz-mcp-server",
+  "version": "1.0.0",
+  "description": "Remote MCP server exposing the Workiz Field Service API (jobs, leads, team, time off) as tools for Claude",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "express": "^4.21.2",
+    "zod": "^3.24.1",
+    "dotenv": "^16.4.7"
+  }
+}
