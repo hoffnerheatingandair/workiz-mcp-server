@@ -166,24 +166,25 @@ router.post("/webhooks/ghl/booking", checkBearerAuth("GHL_WEBHOOK_SECRET"), asyn
 // event -- this does NOT match the job/get/ REST API's field names):
 //   {
 //     "trigger": { "type": "job_created", "timestamp": "..." },
-//     "data": { "id", "uuid", "serialId", "status", "subStatus": {...}, ...28 more },
+//     "data": {
+//       "uuid", "status", "date" ("YYYY-MM-DD HH:MM:SS"), "endDate" (same format),
+//       "team": [{ "id": "USR-...", "name": "..." }, ...], ...more
+//     },
 //     "metadata": { "automationId", "ruleName" }
 //   }
-// Confirmed fields: data.uuid, data.status, trigger.type.
-// NOT yet confirmed: the schedule start/end and tech-assignment field names
-// inside `data` -- the payload we captured was truncated. Until we see a
-// full `data` object (logged raw below) and fill these in, startWorkiz/
-// endWorkiz/team are left undefined/empty rather than guessed, so a job
-// fails loudly (400) instead of silently sending wrong data to GHL.
+// NOTE: data.team[].id is a Workiz "USR-..." string id, NOT the numeric
+// Workiz id (e.g. 443756) used elsewhere (job Team API, techMap.js keys
+// pre-dating this). techMap.js must be keyed on the USR- id for matches to
+// work at all.
 function extractWorkizJob(body = {}) {
   const data = body.data || {};
   return {
     uuid: data.uuid,
     status: data.status,
     triggerType: body.trigger?.type,
-    startWorkiz: undefined, // TODO: unconfirmed field name in `data`
-    endWorkiz: undefined, // TODO: unconfirmed field name in `data`
-    team: [], // TODO: unconfirmed field name in `data`
+    startWorkiz: data.date,
+    endWorkiz: data.endDate,
+    team: Array.isArray(data.team) ? data.team : [],
   };
 }
 
@@ -220,6 +221,7 @@ router.post("/webhooks/workiz/job", logRawBody, checkBearerAuth("WORKIZ_WEBHOOK_
     // extractWorkizJob is filled in with confirmed field names.
     console.log("[workizWebhook] RAW trigger:", JSON.stringify(req.body?.trigger));
     console.log("[workizWebhook] RAW data:", JSON.stringify(req.body?.data, null, 2));
+    console.log("[workizWebhook] RAW data.team:", JSON.stringify(req.body?.data?.team));
 
     const job = extractWorkizJob(req.body);
     console.log(
@@ -242,29 +244,25 @@ router.post("/webhooks/workiz/job", logRawBody, checkBearerAuth("WORKIZ_WEBHOOK_
     }
 
     if (!job.startWorkiz || !job.endWorkiz) {
-      return fail(
-        res,
-        400,
-        new Error(
-          "Schedule start/end field names in the Workiz webhook payload aren't mapped yet -- " +
-            "check Render logs for the raw `data` object logged above and fill in extractWorkizJob"
-        )
-      );
+      return fail(res, 400, new Error("Webhook payload is missing data.date/data.endDate"));
     }
 
     const startTime = fromWorkizDateTime(job.startWorkiz);
     const endTime = fromWorkizDateTime(job.endWorkiz);
     const title = `Workiz Job ${job.uuid}`;
 
+    // job.team[].id is a "USR-..." string id (see extractWorkizJob comment) --
+    // techMap.js must be keyed on that, not the numeric Workiz id.
     const mappedTeam = job.team
       .map((member) => ({ workizId: String(member.id), ghlUserId: WORKIZ_TO_GHL_USER[String(member.id)] }))
       .filter((m) => m.ghlUserId);
 
     const unmapped = job.team.filter((member) => !WORKIZ_TO_GHL_USER[String(member.id)]);
     if (unmapped.length) {
+      // Logged so real USR- ids can be captured and used to key techMap.js.
       console.warn(
         "[workizWebhook] No GHL user mapping for Workiz tech(s):",
-        unmapped.map((m) => `${m.Name || "?"} (${m.id})`).join(", ")
+        unmapped.map((m) => `${m.name || "?"} (${m.id})`).join(", ")
       );
     }
 
