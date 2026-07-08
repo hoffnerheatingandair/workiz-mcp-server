@@ -5,6 +5,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { registerWorkizTools } from "./tools.js";
+import ghlWebhookRoutes from "./ghlWebhookRoutes.js";
 
 const PORT = process.env.PORT || 3000;
 const MCP_SERVER_KEY = process.env.MCP_SERVER_KEY;
@@ -82,6 +83,8 @@ async function handleSessionRequest(req, res) {
 
 app.get("/mcp", checkAuth, handleSessionRequest);
 app.delete("/mcp", checkAuth, handleSessionRequest);
+
+app.use(ghlWebhookRoutes);
 
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 

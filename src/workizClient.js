@@ -60,6 +60,15 @@ async function request(method, path, { query, body } = {}) {
 // ---------- Jobs ----------
 export const getJob = (uuid) => request("GET", `job/get/${uuid}/`);
 export const getAllJobs = (query) => request("GET", "job/all/", { query });
+// body shape confirmed against a real job/get/ record:
+//   FirstName, LastName (two fields, not a combined name)
+//   Phone (plain digits, no "+1", e.g. "4128626273")
+//   JobDateTime, JobEndDateTime ("YYYY-MM-DD HH:MM:SS" -- space, no "T"/offset)
+//   Address, Unit, City, State, PostalCode, Country
+//   JobType, JobSource, JobName, JobNotes, Comments (top-level strings)
+//   Team ([{ id, Name }, ...] for tech assignment)
+// JobTotalPrice, ClientId, Status are Workiz-managed and should not be sent on create.
+export const createJob = (body) => request("POST", "job/create/", { body });
 export const updateJob = (body) => request("POST", "job/update/", { body });
 export const assignJobUser = (body) => request("POST", "job/assign/", { body });
 export const unassignJobUser = (body) => request("POST", "job/unassign/", { body });
