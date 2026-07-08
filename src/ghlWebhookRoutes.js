@@ -33,7 +33,7 @@ import * as ghl from "./ghlClient.js";
 import { toE164, fromE164ToWorkizPhone } from "./phone.js";
 import { toWorkizDateRange, fromWorkizDateTime } from "./datetime.js";
 import { getBlocksForJob, setBlocksForJob, deleteBlocksForJob } from "./ghlBlockStore.js";
-import { WORKIZ_TO_GHL_USER } from "./techMap.js";
+import { WORKIZ_TO_GHL_USER, WORKIZ_NAME_TO_GHL_USER } from "./techMap.js";
 
 function ok(res, data) {
   return res.status(200).json({ ok: true, ...data });
@@ -251,18 +251,33 @@ router.post("/webhooks/workiz/job", logRawBody, checkBearerAuth("WORKIZ_WEBHOOK_
     const endTime = fromWorkizDateTime(job.endWorkiz);
     const title = `Workiz Job ${job.uuid}`;
 
-    // job.team[].id is a "USR-..." string id (see extractWorkizJob comment) --
-    // techMap.js must be keyed on that, not the numeric Workiz id.
-    const mappedTeam = job.team
-      .map((member) => ({ workizId: String(member.id), ghlUserId: WORKIZ_TO_GHL_USER[String(member.id)] }))
-      .filter((m) => m.ghlUserId);
+    // Match by Workiz "USR-..." id first; fall back to name if the id
+    // doesn't match (e.g. Workiz re-issues a user id) -- logged either way
+    // so a name-fallback match or a true miss are both visible, not silent.
+    function resolveGhlUserId(member) {
+      const byId = WORKIZ_TO_GHL_USER[String(member.id)];
+      if (byId) return { ghlUserId: byId, matchedBy: "id" };
+      const byName = member.name ? WORKIZ_NAME_TO_GHL_USER[String(member.name).trim().toLowerCase()] : null;
+      if (byName) return { ghlUserId: byName, matchedBy: "name" };
+      return { ghlUserId: null, matchedBy: null };
+    }
 
-    const unmapped = job.team.filter((member) => !WORKIZ_TO_GHL_USER[String(member.id)]);
+    const resolvedTeam = job.team.map((member) => ({ member, ...resolveGhlUserId(member) }));
+    const mappedTeam = resolvedTeam.filter((r) => r.ghlUserId);
+    const unmapped = resolvedTeam.filter((r) => !r.ghlUserId);
+    const nameFallbacks = mappedTeam.filter((r) => r.matchedBy === "name");
+
+    if (nameFallbacks.length) {
+      console.warn(
+        "[workizWebhook] Matched tech by NAME fallback (id didn't match):",
+        nameFallbacks.map((r) => `${r.member.name} (${r.member.id})`).join(", ")
+      );
+    }
     if (unmapped.length) {
-      // Logged so real USR- ids can be captured and used to key techMap.js.
+      // Logged so real USR- ids/names can be captured and added to techMap.js.
       console.warn(
         "[workizWebhook] No GHL user mapping for Workiz tech(s):",
-        unmapped.map((m) => `${m.name || "?"} (${m.id})`).join(", ")
+        unmapped.map((r) => `${r.member.name || "?"} (${r.member.id})`).join(", ")
       );
     }
 
