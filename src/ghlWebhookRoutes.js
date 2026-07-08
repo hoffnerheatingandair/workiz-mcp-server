@@ -185,7 +185,28 @@ function extractWorkizJob(body = {}) {
     startWorkiz: data.date,
     endWorkiz: data.endDate,
     team: Array.isArray(data.team) ? data.team : [],
+    // Client name + job type, for the human-readable block title below.
+    clientFirstName: data.firstName,
+    clientLastName: data.lastName,
+    jobTypeName: data.jobType?.name,
   };
+}
+
+// "{tech first name} — {client name} (jobType)", e.g. "Todd — Jane Doe
+// (Repair)". Falls back to the uuid-based title if any piece is missing,
+// rather than printing a title with holes in it.
+function buildBlockTitle({ techFullName, clientFirstName, clientLastName, jobTypeName, uuid }) {
+  const fallback = `Workiz Job ${uuid}`;
+
+  const techFirst = techFullName ? String(techFullName).trim().split(/\s+/)[0] : "";
+  const first = clientFirstName ? String(clientFirstName).trim() : "";
+  const last = clientLastName ? String(clientLastName).trim() : "";
+  const jobType = jobTypeName ? String(jobTypeName).trim() : "";
+
+  // Any single piece missing (including just clientLastName) falls back --
+  // not just a wholly-empty client name.
+  if (!techFirst || !first || !last || !jobType) return fallback;
+  return `${techFirst} — ${first} ${last} (${jobType})`;
 }
 
 // trigger.type values confirmed so far: "job_created". Cancel/delete types
@@ -249,7 +270,6 @@ router.post("/webhooks/workiz/job", logRawBody, checkBearerAuth("WORKIZ_WEBHOOK_
 
     const startTime = fromWorkizDateTime(job.startWorkiz);
     const endTime = fromWorkizDateTime(job.endWorkiz);
-    const title = `Workiz Job ${job.uuid}`;
 
     // Match by Workiz "USR-..." id first; fall back to name if the id
     // doesn't match (e.g. Workiz re-issues a user id) -- logged either way
@@ -284,7 +304,15 @@ router.post("/webhooks/workiz/job", logRawBody, checkBearerAuth("WORKIZ_WEBHOOK_
     const updatedBlocks = {};
 
     // Create or reschedule a block for each currently-assigned, mapped tech.
-    for (const { ghlUserId } of mappedTeam) {
+    // Title is per-tech (uses that tech's own first name), not shared.
+    for (const { member, ghlUserId } of mappedTeam) {
+      const title = buildBlockTitle({
+        techFullName: member.name,
+        clientFirstName: job.clientFirstName,
+        clientLastName: job.clientLastName,
+        jobTypeName: job.jobTypeName,
+        uuid: job.uuid,
+      });
       const existingEventId = existingBlocks[ghlUserId];
       if (existingEventId) {
         await ghl.updateBlockSlot(existingEventId, { assignedUserId: ghlUserId, startTime, endTime, title });
