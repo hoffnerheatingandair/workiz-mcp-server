@@ -162,17 +162,36 @@ router.post("/webhooks/ghl/booking", checkBearerAuth("GHL_WEBHOOK_SECRET"), asyn
 // to POST here with `Authorization: Bearer <WORKIZ_WEBHOOK_SECRET>`.
 // ---------------------------------------------------------------------
 
-const CANCELED_STATUSES = new Set(["canceled", "cancelled", "deleted"]);
-
+// Confirmed real webhook shape (captured from a live Workiz job_created
+// event -- this does NOT match the job/get/ REST API's field names):
+//   {
+//     "trigger": { "type": "job_created", "timestamp": "..." },
+//     "data": { "id", "uuid", "serialId", "status", "subStatus": {...}, ...28 more },
+//     "metadata": { "automationId", "ruleName" }
+//   }
+// Confirmed fields: data.uuid, data.status, trigger.type.
+// NOT yet confirmed: the schedule start/end and tech-assignment field names
+// inside `data` -- the payload we captured was truncated. Until we see a
+// full `data` object (logged raw below) and fill these in, startWorkiz/
+// endWorkiz/team are left undefined/empty rather than guessed, so a job
+// fails loudly (400) instead of silently sending wrong data to GHL.
 function extractWorkizJob(body = {}) {
+  const data = body.data || {};
   return {
-    uuid: body.UUID || body.uuid,
-    startWorkiz: body.JobDateTime,
-    endWorkiz: body.JobEndDateTime,
-    status: body.Status || body.status,
-    team: Array.isArray(body.Team) ? body.Team : [],
+    uuid: data.uuid,
+    status: data.status,
+    triggerType: body.trigger?.type,
+    startWorkiz: undefined, // TODO: unconfirmed field name in `data`
+    endWorkiz: undefined, // TODO: unconfirmed field name in `data`
+    team: [], // TODO: unconfirmed field name in `data`
   };
 }
+
+// trigger.type values confirmed so far: "job_created". Cancel/delete types
+// are assumed to follow the same "job_<verb>" pattern (per Workiz's own
+// naming) -- confirm against real fired events and extend this set as
+// needed once we've seen a cancellation come through.
+const CANCEL_TRIGGER_TYPES = new Set(["job_canceled", "job_cancelled", "job_deleted"]);
 
 // GHL 404s (event already gone -- e.g. deleted manually in GHL) shouldn't
 // block a cancel/reschedule; anything else should surface as a real error.
@@ -184,16 +203,35 @@ async function deleteBlockIgnoring404(eventId) {
   }
 }
 
-router.post("/webhooks/workiz/job", checkBearerAuth("WORKIZ_WEBHOOK_SECRET"), async (req, res) => {
+// TEMP: logs the complete raw request body before auth is even checked, so
+// every hit -- authenticated or not -- prints exactly what was sent. Remove
+// once extractWorkizJob's field names below are confirmed against a real
+// payload.
+function logRawBody(req, res, next) {
+  console.log("RAW WORKIZ BODY:", JSON.stringify(req.body));
+  next();
+}
+
+router.post("/webhooks/workiz/job", logRawBody, checkBearerAuth("WORKIZ_WEBHOOK_SECRET"), async (req, res) => {
   try {
+    // TEMP: log the full raw payload broken into pieces so we can see
+    // Workiz's actual field names for schedule start/end and tech
+    // assignment inside `data`. Remove/gate behind a DEBUG env var once
+    // extractWorkizJob is filled in with confirmed field names.
+    console.log("[workizWebhook] RAW trigger:", JSON.stringify(req.body?.trigger));
+    console.log("[workizWebhook] RAW data:", JSON.stringify(req.body?.data, null, 2));
+
     const job = extractWorkizJob(req.body);
+    console.log(
+      `[workizWebhook] uuid=${job.uuid} status=${job.status} triggerType=${job.triggerType}`
+    );
 
     if (!job.uuid) {
-      return fail(res, 400, new Error("Webhook payload is missing a job UUID"));
+      return fail(res, 400, new Error("Webhook payload is missing a job UUID (data.uuid)"));
     }
 
     const existingBlocks = await getBlocksForJob(job.uuid);
-    const isCanceled = job.status && CANCELED_STATUSES.has(String(job.status).toLowerCase());
+    const isCanceled = CANCEL_TRIGGER_TYPES.has(String(job.triggerType || "").toLowerCase());
 
     if (isCanceled) {
       for (const eventId of Object.values(existingBlocks)) {
@@ -204,7 +242,14 @@ router.post("/webhooks/workiz/job", checkBearerAuth("WORKIZ_WEBHOOK_SECRET"), as
     }
 
     if (!job.startWorkiz || !job.endWorkiz) {
-      return fail(res, 400, new Error("Webhook payload is missing JobDateTime/JobEndDateTime"));
+      return fail(
+        res,
+        400,
+        new Error(
+          "Schedule start/end field names in the Workiz webhook payload aren't mapped yet -- " +
+            "check Render logs for the raw `data` object logged above and fill in extractWorkizJob"
+        )
+      );
     }
 
     const startTime = fromWorkizDateTime(job.startWorkiz);
