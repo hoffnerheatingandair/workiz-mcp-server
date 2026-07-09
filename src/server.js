@@ -109,8 +109,11 @@ app.get("/api/jobs", async (req, res) => {
       return res.status(500).json({ error: "WORKIZ_API_TOKEN is not set on Render" });
     }
 
-    // Jobs from the last 90 days
-    const start = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+    // Jobs since January 1st (for YTD stats) or the last 90 days,
+    // whichever reaches further back
+    const yearStart = new Date(new Date().getFullYear(), 0, 1);
+    const ninetyDays = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    const start = (yearStart < ninetyDays ? yearStart : ninetyDays)
       .toISOString()
       .slice(0, 10); // YYYY-MM-DD
 
@@ -119,7 +122,7 @@ app.get("/api/jobs", async (req, res) => {
     let hasMore = true;
 
     // Workiz returns up to 100 jobs per page — loop through all pages
-    while (hasMore && offset < 2000) {
+    while (hasMore && offset < 5000) {
       const url =
         `https://api.workiz.com/api/v1/${token}/job/all/` +
         `?start_date=${start}&offset=${offset}&records=100&only_open=false`;
