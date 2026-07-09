@@ -144,7 +144,22 @@ app.get("/api/jobs", async (req, res) => {
 });
 
 app.get("/board", (req, res) => {
-  res.sendFile(require("path").join(__dirname, "board.html"));
+  const path = require("path");
+  const fs = require("fs");
+  const spots = [
+    path.join(__dirname, "board.html"),
+    path.join(__dirname, "src", "board.html"),
+    path.join(__dirname, "..", "board.html"),
+    path.join(process.cwd(), "board.html"),
+    path.join(process.cwd(), "src", "board.html"),
+  ];
+  const file = spots.find((p) => fs.existsSync(p));
+  if (!file) {
+    return res
+      .status(500)
+      .send("board.html not found. Looked in: " + spots.join(" | "));
+  }
+  res.sendFile(file);
 });
 
 app.listen(PORT, () => {
