@@ -9,10 +9,11 @@
     --ink: #2A3444;
     --muted: #7A8699;
     --bg: #F5F6F8;
-    --card-border: #E1E6EC;
+    --line: #E1E6EC;
     --orange: #E8862E;
     --blue: #3B7DC4;
     --purple: #8055C4;
+    --green: #2F8A3C;
     --red: #C94040;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,55 +26,50 @@
   header {
     background: #1C2634;
     color: #fff;
-    padding: 20px 24px;
+    padding: 14px 20px;
     display: flex;
     flex-wrap: wrap;
-    gap: 18px;
+    gap: 14px;
     align-items: center;
     justify-content: space-between;
     border-bottom: 3px solid var(--orange);
   }
-  .brand-row { display: flex; align-items: center; gap: 10px; }
-  h1 { font-size: 21px; letter-spacing: 0.14em; font-weight: 800; }
-  .subtitle { margin-top: 6px; font-size: 13px; color: #9AA7B8; }
-  .header-right { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
-  .head-stat { text-align: center; }
-  .head-num { display: block; font-size: 26px; font-weight: 800; line-height: 1; }
-  .head-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #9AA7B8; }
-  #refresh-btn {
-    background: var(--orange); color: #1C2634; border: none; border-radius: 6px;
-    padding: 10px 18px; font-size: 14px; font-weight: 700; cursor: pointer;
-  }
-  #refresh-btn:hover:not(:disabled) { filter: brightness(1.08); }
-  #refresh-btn:disabled { opacity: 0.6; }
-  .toolbar {
-    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    padding: 14px 24px 4px;
-  }
-  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-  .tab {
-    border: 1px solid #D5DBE3; border-radius: 20px; padding: 7px 14px;
-    font-size: 13px; font-weight: 700; cursor: pointer; background: #fff; color: var(--ink);
-  }
-  .tab.active { color: #fff; border-color: transparent; }
-  #search {
-    flex: 1 1 220px; max-width: 360px; padding: 9px 14px; border-radius: 6px;
-    border: 1px solid #D5DBE3; font-size: 14px; outline: none; background: #fff;
-  }
-  #search:focus { border-color: var(--blue); }
-  .toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5A6678; cursor: pointer; }
-  #updated { font-size: 12px; color: var(--muted); }
+  h1 { font-size: 17px; letter-spacing: 0.12em; font-weight: 800; }
+  .subtitle { font-size: 12px; color: #9AA7B8; margin-top: 2px; }
+  .header-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  #updated { font-size: 12px; color: #9AA7B8; }
   .live-dot {
     display: inline-block; width: 8px; height: 8px; border-radius: 50%;
     background: #4C9A55; margin-right: 5px; animation: blink 2s ease-in-out infinite;
   }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  #refresh-btn {
+    background: var(--orange); color: #1C2634; border: none; border-radius: 6px;
+    padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  #refresh-btn:disabled { opacity: 0.6; }
+
+  .toolbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 12px 20px 0;
+  }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tab {
+    border: 1px solid #D5DBE3; border-radius: 18px; padding: 6px 13px;
+    font-size: 13px; font-weight: 700; cursor: pointer; background: #fff; color: var(--ink);
+  }
+  .tab.active { color: #fff; border-color: transparent; }
+  #search {
+    flex: 1 1 200px; max-width: 340px; padding: 8px 12px; border-radius: 6px;
+    border: 1px solid #D5DBE3; font-size: 14px; outline: none; background: #fff;
+  }
+  #search:focus { border-color: var(--blue); }
 
   .error-box {
-    margin: 20px 24px; background: #FDEBEB; border: 1px solid var(--red);
-    border-radius: 8px; padding: 16px 18px; color: #7E1D1D; font-size: 14px;
+    margin: 20px; background: #FDEBEB; border: 1px solid var(--red);
+    border-radius: 8px; padding: 14px 16px; color: #7E1D1D; font-size: 14px;
   }
-  .loading-box { padding: 48px 24px; text-align: center; }
+  .loading-box { padding: 48px 20px; text-align: center; }
   .pulse-bar {
     display: inline-block; width: 10px; height: 34px; margin: 0 4px; border-radius: 3px;
     background: linear-gradient(var(--orange), var(--blue));
@@ -85,96 +81,120 @@
     0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
     50% { transform: scaleY(1); opacity: 1; }
   }
-  @media (prefers-reduced-motion: reduce) {
-    .pulse-bar, .live-dot { animation: none; }
-  }
+  @media (prefers-reduced-motion: reduce) { .pulse-bar, .live-dot { animation: none; } }
 
-  .lane { padding: 20px 24px 0; }
+  .lane { margin: 18px 20px 0; }
   .lane-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding-left: 12px; margin-bottom: 12px; border-left: 5px solid;
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 0 0 6px 10px; border-left: 5px solid;
   }
-  .lane-title { font-size: 17px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; margin-right: 10px; }
-  .lane-blurb { font-size: 12px; color: var(--muted); }
-  .lane-count { font-size: 13px; font-weight: 800; border-radius: 12px; padding: 3px 12px; }
-  .lane-empty { color: #9AA7B8; font-size: 14px; padding-left: 12px; }
+  .lane-title { font-size: 15px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+  .lane-count { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .lane-empty { color: #9AA7B8; font-size: 13px; padding: 8px 0 0 12px; }
+
+  .bucket { margin-top: 10px; }
   .bucket-title {
-    font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
-    margin: 14px 0 8px; padding-left: 12px;
+    font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 6px 12px; border-radius: 6px 6px 0 0;
   }
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-    gap: 12px;
+  .rows { background: #fff; border: 1px solid var(--line); border-radius: 0 0 8px 8px; }
+  .row {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 10px 12px; border-top: 1px solid #F0F2F5;
   }
-  .card {
-    background: #fff; border: 1px solid var(--card-border); border-radius: 8px;
-    padding: 12px 14px; box-shadow: 0 1px 2px rgba(28,38,52,0.05);
-    transition: box-shadow 0.15s ease;
+  .row:first-child { border-top: none; }
+  .row.priority { border-left: 4px solid var(--red); background: #FFF8F8; }
+  .row-main { flex: 1 1 240px; min-width: 0; }
+  .client { font-size: 14px; font-weight: 700; }
+  .addr { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .row-tech {
+    flex: 0 0 auto; font-size: 13px; font-weight: 700; color: var(--ink);
+    background: #F1F3F6; border-radius: 5px; padding: 4px 10px; white-space: nowrap;
   }
-  .card:hover { box-shadow: 0 3px 10px rgba(28,38,52,0.12); }
-  .card.finished { opacity: 0.55; }
-  .card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .job-num { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; }
-  .status-badge { font-size: 11px; font-weight: 700; border-radius: 10px; padding: 3px 9px; white-space: nowrap; }
-  .client { font-size: 15px; font-weight: 700; margin-top: 6px; }
-  .meta { font-size: 13px; color: #5A6678; margin-top: 3px; }
-  .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
-  .chip { font-size: 11px; font-weight: 600; background: #F1F3F6; color: var(--ink); border-radius: 4px; padding: 3px 8px; }
-  .chip-quiet { font-size: 11px; font-weight: 600; color: var(--muted); }
+  .row-tech.none { color: var(--red); background: #FDEBEB; }
+  .row-money { flex: 0 0 78px; text-align: right; font-size: 14px; font-weight: 800; color: var(--green); }
+  .row-money.zero { color: #B8C0CC; font-weight: 600; }
+  .row-due { flex: 0 0 auto; font-size: 12px; font-weight: 800; color: var(--red); white-space: nowrap; }
+  .row-date { flex: 0 0 auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .row-num { flex: 0 0 auto; font-size: 11px; color: #B8C0CC; white-space: nowrap; }
   .old-badge { font-size: 11px; font-weight: 700; background: #FDEBEB; color: var(--red); border-radius: 10px; padding: 2px 8px; }
-  .phone { font-size: 13px; color: var(--blue); margin-top: 8px; font-weight: 600; }
-  .phone a { color: inherit; text-decoration: none; }
+  .pri-badge { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; background: var(--red); color: #fff; border-radius: 4px; padding: 2px 7px; }
+  .status-note { font-size: 11px; font-weight: 700; color: var(--muted); }
+
+  /* Techs tab */
+  .stats-wrap { margin: 18px 20px 0; overflow-x: auto; }
+  table.stats {
+    width: 100%; border-collapse: collapse; background: #fff;
+    border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+    font-size: 13px;
+  }
+  table.stats th {
+    text-align: left; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--muted); background: #F1F3F6; padding: 9px 12px; white-space: nowrap;
+  }
+  table.stats td { padding: 9px 12px; border-top: 1px solid #F0F2F5; white-space: nowrap; }
+  table.stats td.num { text-align: right; font-weight: 700; }
+  table.stats td.tech-name { font-weight: 800; }
+  table.stats td .warn { color: var(--red); }
+  .stats-note { font-size: 11px; color: var(--muted); margin: 6px 2px 0; }
+
+  .tech-section { margin: 18px 20px 0; }
+  .tech-header {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 0 0 6px 10px; border-left: 5px solid var(--orange);
+  }
+  .tech-title { font-size: 15px; font-weight: 800; }
+  .tech-sub { font-size: 12px; color: var(--muted); }
+
   footer { text-align: center; font-size: 12px; color: #9AA7B8; margin-top: 40px; }
+
+  @media (max-width: 560px) {
+    .row { gap: 8px; }
+    .row-money { flex-basis: 64px; }
+    .row-num { display: none; }
+  }
 </style>
 </head>
 <body>
 
 <header>
   <div>
-    <div class="brand-row">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M12 2c1 4-4 6-4 11a4 4 0 0 0 8 0c0-2-1-3-1-3s3 1 3 4a6 6 0 0 1-12 0C6 8 11 6 12 2z" fill="#E8862E"/>
-      </svg>
-      <h1>DISPATCH BOARD</h1>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B7DC4" stroke-width="2" aria-hidden="true">
-        <path d="M12 2v20M4 6l16 12M20 6L4 18"/>
-      </svg>
-    </div>
-    <p class="subtitle">Hoffner Heating &amp; Air &middot; live from Workiz</p>
+    <h1>HOFFNER DISPATCH</h1>
+    <p class="subtitle">Live from Workiz &middot; auto-refreshes every 60s</p>
   </div>
   <div class="header-right">
-    <div class="head-stat"><span class="head-num" id="count-projects" style="color:#8055C4">&mdash;</span><span class="head-label">Projects</span></div>
-    <div class="head-stat"><span class="head-num" id="count-service" style="color:#E8862E">&mdash;</span><span class="head-label">Service Calls</span></div>
-    <div class="head-stat"><span class="head-num" id="count-installs" style="color:#3B7DC4">&mdash;</span><span class="head-label">Installs</span></div>
+    <span id="updated"></span>
     <button id="refresh-btn">Refresh</button>
   </div>
 </header>
 
 <div class="toolbar">
   <div class="tabs" id="tabs"></div>
-  <input type="text" id="search" placeholder="Search name, address, tech, job #&hellip;" />
-  <label class="toggle"><input type="checkbox" id="show-finished" /> Show finished</label>
-  <span id="updated"></span>
+  <input type="text" id="search" placeholder="Search name, address, tech&hellip;" />
 </div>
 
 <div id="content"></div>
 
-<footer>Live from Workiz &middot; auto-refreshes every 60 seconds</footer>
+<footer>Done jobs hidden on lane views &middot; Tech stats cover Service Calls only (repairs &amp; tune-ups)</footer>
 
 <script>
-// ==== CLASSIFICATION RULES — tune these to match your Workiz setup ====
+// ==== RULES — tune to match your Workiz setup ====
 const PROJECT_CLIENTS = ["paramount", "ward"];
 const PROJECT_TYPE_KEYWORDS = ["new construction", "construction", "commercial", "project"];
 const INSTALL_TYPE_KEYWORDS = ["install", "replacement", "new system", "changeout", "change out"];
-const SCHEDULED_STATUSES = ["scheduled", "in progress"];
+const IN_PROGRESS_STATUSES = ["in progress"];
+const SCHEDULED_STATUSES = ["scheduled", "submitted"];
 const FINISHED_STATUSES = ["done", "completed", "canceled", "cancelled"];
-// ======================================================================
+const CANCELED_STATUSES = ["canceled", "cancelled"];
+const FOLLOWUP_TAGS = ["followed up", "follow up done", "followup"];
+const PRIORITY_DAYS = 30;    // unpaid + this old + no follow-up tag = PRIORITY
+const STATS_WINDOW_DAYS = 30; // jobs run / avg ticket lookback
+// =================================================
 
 const LANES = {
-  projects: { label: "Projects", accent: "#8055C4", soft: "#F3ECFB", dark: "#4A2A80", blurb: "Ongoing commercial & new construction" },
-  service:  { label: "Service Calls", accent: "#E8862E", soft: "#FFF4E5", dark: "#8A4A00", blurb: "Repairs, tune-ups, diagnostics" },
-  installs: { label: "Installs", accent: "#3B7DC4", soft: "#EAF2FB", dark: "#1D4E7E", blurb: "System installs & replacements" },
+  service:  { label: "Service Calls", accent: "#E8862E", soft: "#FFF4E5", dark: "#8A4A00" },
+  installs: { label: "Installs", accent: "#3B7DC4", soft: "#EAF2FB", dark: "#1D4E7E" },
+  projects: { label: "Projects", accent: "#8055C4", soft: "#F3ECFB", dark: "#4A2A80" },
 };
 
 let allJobs = [];
@@ -201,18 +221,40 @@ function clientName(j) {
   return person || company || f(j, "ClientName", "Name") || "Unknown client";
 }
 const jobAddress = (j) => [f(j, "Address"), f(j, "City")].filter(Boolean).join(", ");
-function techNames(j) {
+function techList(j) {
   const team = f(j, "Team");
   if (Array.isArray(team)) {
-    return team.map(t => typeof t === "string" ? t : (t && (t.Name || t.name)) || "").filter(Boolean).join(", ");
+    return team.map(t => typeof t === "string" ? t : (t && (t.Name || t.name)) || "").filter(Boolean);
   }
-  return f(j, "Tech", "AssignedTo") || "";
+  const single = f(j, "Tech", "AssignedTo");
+  return single ? [String(single)] : [];
+}
+const techNames = (j) => techList(j).join(", ");
+function money(j) {
+  const n = parseFloat(f(j, "JobTotalPrice", "TotalPrice", "Total", "SubTotal"));
+  return isNaN(n) ? null : n;
+}
+function amountDue(j) {
+  const n = parseFloat(f(j, "JobAmountDue", "AmountDue", "Due", "Balance"));
+  return isNaN(n) ? 0 : n;
+}
+function jobTags(j) {
+  const raw = f(j, "Tags", "JobTags");
+  let list = [];
+  if (Array.isArray(raw)) list = raw.map(t => typeof t === "string" ? t : (t && (t.Name || t.name || t.tag)) || "");
+  else if (typeof raw === "string") list = raw.split(",");
+  return list.map(t => String(t).toLowerCase().trim()).filter(Boolean);
+}
+const hasFollowUp = (j) => jobTags(j).some(t => FOLLOWUP_TAGS.includes(t));
+function fmtMoney(n) {
+  if (n === null) return "\u2014";
+  return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 function formatDate(raw) {
   if (!raw) return "";
   const d = new Date(raw);
   if (isNaN(d.getTime())) return String(raw);
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 function daysAgo(raw) {
   if (!raw) return null;
@@ -220,6 +262,7 @@ function daysAgo(raw) {
   if (isNaN(d.getTime())) return null;
   return Math.floor((Date.now() - d.getTime()) / 86400000);
 }
+const jobDate = (j) => f(j, "JobDateTime", "CreatedDate");
 
 // ---- classification ----
 function classifyLane(job) {
@@ -229,8 +272,19 @@ function classifyLane(job) {
   if (INSTALL_TYPE_KEYWORDS.some(k => type.includes(k))) return "installs";
   return "service";
 }
-const isScheduled = (j) => SCHEDULED_STATUSES.includes(jobStatus(j).toLowerCase());
 const isFinished = (j) => FINISHED_STATUSES.includes(jobStatus(j).toLowerCase());
+const isCanceled = (j) => CANCELED_STATUSES.includes(jobStatus(j).toLowerCase());
+const isDone = (j) => isFinished(j) && !isCanceled(j);
+function bucketOf(j) {
+  const s = jobStatus(j).toLowerCase();
+  if (IN_PROGRESS_STATUSES.includes(s)) return "inprogress";
+  if (SCHEDULED_STATUSES.includes(s)) return "scheduled";
+  return "open";
+}
+function isPriority(j) {
+  const age = daysAgo(jobDate(j));
+  return age !== null && age >= PRIORITY_DAYS && amountDue(j) > 0 && !hasFollowUp(j);
+}
 
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -249,7 +303,7 @@ async function loadJobs(silent) {
     }
   }
   try {
-    const res = await fetch("/api/jobs");
+    const res = await fetch("https://workiz-mcp-server.onrender.com/api/jobs");
     if (!res.ok) {
       let detail = "";
       try { detail = (await res.json()).error || ""; } catch (e) {}
@@ -257,12 +311,12 @@ async function loadJobs(silent) {
     }
     const body = await res.json();
     const jobs = Array.isArray(body.jobs) ? body.jobs : (Array.isArray(body.data) ? body.data : []);
-    if (jobs.length === 0) throw new Error("The server responded but returned zero jobs. Check the Workiz API token on Render.");
+    if (jobs.length === 0) throw new Error("The server responded but returned zero jobs.");
     allJobs = jobs;
     firstLoad = false;
     const now = new Date();
     document.getElementById("updated").innerHTML =
-      '<span class="live-dot"></span>Live \u00b7 updated ' +
+      '<span class="live-dot"></span>Live \u00b7 ' +
       now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
     render();
   } catch (err) {
@@ -276,109 +330,214 @@ async function loadJobs(silent) {
   }
 }
 
-// ---- render ----
-function render() {
-  const search = document.getElementById("search").value.trim().toLowerCase();
-  const showFinished = document.getElementById("show-finished").checked;
+// ---- shared row ----
+function rowHtml(job, opts) {
+  opts = opts || {};
+  const tech = techNames(job);
+  const amt = money(job);
+  const due = amountDue(job);
+  const created = jobDate(job);
+  const age = daysAgo(created);
+  const status = jobStatus(job);
+  const pri = opts.checkPriority && isPriority(job);
 
-  let visible = allJobs;
-  if (!showFinished) visible = visible.filter(j => !isFinished(j));
-  if (search) {
-    visible = visible.filter(j => {
-      const hay = [clientName(j), jobAddress(j), jobStatus(j), techNames(j),
-        String(f(j, "SerialId", "UUID", "JobId")), String(f(j, "JobType")), String(f(j, "Phone"))
-      ].join(" ").toLowerCase();
-      return hay.includes(search);
-    });
-  }
+  return '<div class="row' + (pri ? ' priority' : '') + '">' +
+    '<div class="row-main">' +
+      '<div class="client">' + (pri ? '<span class="pri-badge">PRIORITY</span> ' : '') + esc(clientName(job)) + '</div>' +
+      '<div class="addr">' + esc(jobAddress(job)) +
+        (opts.showStatus ? ' &middot; <span class="status-note">' + esc(status) + '</span>' : '') +
+      '</div>' +
+    '</div>' +
+    (opts.hideTech ? '' :
+      (tech
+        ? '<span class="row-tech">' + esc(tech) + '</span>'
+        : '<span class="row-tech none">Unassigned</span>')) +
+    '<span class="row-money' + (amt === null || amt === 0 ? ' zero' : '') + '">' + fmtMoney(amt) + '</span>' +
+    (due > 0 ? '<span class="row-due">due ' + fmtMoney(due) + '</span>' : '') +
+    '<span class="row-date">' + esc(formatDate(created)) +
+      (age !== null && age > 14 && !isFinished(job) ? ' <span class="old-badge">' + age + 'd</span>' : '') +
+    '</span>' +
+    '<span class="row-num">#' + esc(f(job, "SerialId", "JobId", "UUID")) + '</span>' +
+  '</div>';
+}
+
+// ---- lane view ----
+const BUCKETS = [
+  { key: "inprogress", label: "In Progress", color: "#2F8A3C", bg: "#EDF7EE" },
+  { key: "scheduled",  label: "Scheduled",   color: "#1D4E7E", bg: "#EAF2FB" },
+  { key: "open",       label: "Still Open",  color: "#7E1D1D", bg: "#FDEBEB" },
+];
+
+function matchesSearch(j, search) {
+  if (!search) return true;
+  const hay = [clientName(j), jobAddress(j), jobStatus(j), techNames(j),
+    String(f(j, "SerialId", "UUID", "JobId")), String(f(j, "JobType"))
+  ].join(" ").toLowerCase();
+  return hay.includes(search);
+}
+
+function renderLanes(search) {
+  let visible = allJobs.filter(j => !isFinished(j) && matchesSearch(j, search));
 
   const board = {
-    projects: { scheduled: [], open: [] },
-    service: { scheduled: [], open: [] },
-    installs: { scheduled: [], open: [] },
+    service:  { inprogress: [], scheduled: [], open: [] },
+    installs: { inprogress: [], scheduled: [], open: [] },
+    projects: { inprogress: [], scheduled: [], open: [] },
   };
-  for (const job of visible) {
-    const lane = classifyLane(job);
-    board[lane][isScheduled(job) ? "scheduled" : "open"].push(job);
-  }
-  const byDate = (a, z) => new Date(f(a, "JobDateTime", "CreatedDate") || 0) - new Date(f(z, "JobDateTime", "CreatedDate") || 0);
-  for (const key of Object.keys(board)) {
-    board[key].scheduled.sort(byDate);
-    board[key].open.sort(byDate);
-  }
+  for (const job of visible) board[classifyLane(job)][bucketOf(job)].push(job);
+  const byDate = (a, z) => new Date(jobDate(a) || 0) - new Date(jobDate(z) || 0);
+  for (const lane of Object.values(board)) for (const list of Object.values(lane)) list.sort(byDate);
 
-  // header counts
-  for (const key of Object.keys(LANES)) {
-    document.getElementById("count-" + key).textContent = board[key].scheduled.length + board[key].open.length;
-  }
-
-  const laneKeys = activeLane === "all" ? ["projects", "service", "installs"] : [activeLane];
+  const laneKeys = activeLane === "all" ? ["service", "installs", "projects"] : [activeLane];
   let html = "";
 
   for (const key of laneKeys) {
     const lane = LANES[key];
-    const scheduled = board[key].scheduled;
-    const open = board[key].open;
-    const total = scheduled.length + open.length;
+    const total = board[key].inprogress.length + board[key].scheduled.length + board[key].open.length;
 
     html += '<section class="lane">' +
       '<div class="lane-header" style="border-color:' + lane.accent + '">' +
-        '<div><span class="lane-title" style="color:' + lane.dark + '">' + lane.label + '</span>' +
-        '<span class="lane-blurb">' + lane.blurb + '</span></div>' +
-        '<span class="lane-count" style="background:' + lane.soft + ';color:' + lane.dark + '">' + total + '</span>' +
+        '<span class="lane-title" style="color:' + lane.dark + '">' + lane.label + '</span>' +
+        '<span class="lane-count">' + total + '</span>' +
       '</div>';
 
     if (total === 0) {
-      html += '<p class="lane-empty">' + (search ? "Nothing here matches your search." : "Nothing in this lane right now.") + '</p>';
-    } else if (key === "projects") {
-      html += cardGrid(scheduled.concat(open), lane, false);
+      html += '<p class="lane-empty">' + (search ? "No matches." : "Nothing here right now.") + '</p>';
     } else {
-      if (scheduled.length) {
-        html += '<h3 class="bucket-title" style="color:' + lane.dark + '">Scheduled <span style="font-weight:600;color:#7A8699">(' + scheduled.length + ')</span></h3>';
-        html += cardGrid(scheduled, lane, false);
-      }
-      if (open.length) {
-        html += '<h3 class="bucket-title" style="color:#7E1D1D">Still open <span style="font-weight:600;color:#7A8699">(' + open.length + ')</span></h3>';
-        html += cardGrid(open, lane, true);
+      for (const bucket of BUCKETS) {
+        const list = board[key][bucket.key];
+        if (!list.length) continue;
+        html += '<div class="bucket">' +
+          '<div class="bucket-title" style="color:' + bucket.color + ';background:' + bucket.bg + '">' +
+            bucket.label + ' (' + list.length + ')</div>' +
+          '<div class="rows">';
+        for (const job of list) html += rowHtml(job, { showStatus: bucket.key === "open" });
+        html += '</div></div>';
       }
     }
     html += '</section>';
   }
-
-  document.getElementById("content").innerHTML = html;
+  return html;
 }
 
-function cardGrid(jobs, lane, showAge) {
-  let html = '<div class="cards">';
-  for (const job of jobs) {
-    const serial = f(job, "SerialId", "JobId", "UUID");
-    const created = f(job, "JobDateTime", "CreatedDate");
-    const age = daysAgo(created);
-    const phone = f(job, "Phone");
-    html += '<div class="card' + (isFinished(job) ? ' finished' : '') + '">' +
-      '<div class="card-top"><span class="job-num">#' + esc(serial) + '</span>' +
-      '<span class="status-badge" style="background:' + lane.soft + ';color:' + lane.dark + '">' + esc(jobStatus(job)) + '</span></div>' +
-      '<div class="client">' + esc(clientName(job)) + '</div>' +
-      (jobAddress(job) ? '<div class="meta">' + esc(jobAddress(job)) + '</div>' : '') +
-      '<div class="meta-row">' +
-        (f(job, "JobType") ? '<span class="chip">' + esc(f(job, "JobType")) + '</span>' : '') +
-        (techNames(job) ? '<span class="chip">' + esc(techNames(job)) + '</span>' : '') +
-        (created ? '<span class="chip-quiet">' + esc(formatDate(created)) + '</span>' : '') +
-        (showAge && age !== null && age > 14 ? '<span class="old-badge">' + age + 'd old</span>' : '') +
-      '</div>' +
-      (phone ? '<div class="phone"><a href="tel:' + esc(phone) + '">' + esc(phone) + '</a></div>' : '') +
-    '</div>';
+// ---- techs view (Service Calls only: repairs & tune-ups) ----
+function renderTechs(search) {
+  const svc = allJobs.filter(j => classifyLane(j) === "service");
+  const now = Date.now();
+  const windowStart = now - STATS_WINDOW_DAYS * 86400000;
+
+  // Build per-tech stats. Multi-tech jobs credit each tech fully.
+  const stats = {}; // name -> {runs, ticketSum, ticketCount, unpaid:[], open:[], priority:[]}
+  const ensure = (name) => {
+    if (!stats[name]) stats[name] = { runs: 0, ticketSum: 0, ticketCount: 0, unpaid: [], open: [], priority: [] };
+    return stats[name];
+  };
+
+  for (const job of svc) {
+    const techs = techList(job);
+    const names = techs.length ? techs : ["Unassigned"];
+    const done = isDone(job);
+    const due = amountDue(job);
+    const amt = money(job);
+    const d = new Date(jobDate(job) || 0).getTime();
+
+    for (const name of names) {
+      const s = ensure(name);
+      if (done) {
+        if (d >= windowStart) {
+          s.runs++;
+          if (amt !== null && amt > 0) { s.ticketSum += amt; s.ticketCount++; }
+        }
+        if (due > 0) {
+          s.unpaid.push(job);
+          if (isPriority(job)) s.priority.push(job);
+        }
+      } else if (!isCanceled(job)) {
+        s.open.push(job);
+        if (isPriority(job)) s.priority.push(job);
+      }
+    }
   }
-  return html + '</div>';
+
+  // Sort techs: most priority first, then most open
+  const names = Object.keys(stats).sort((a, b) => {
+    const sa = stats[a], sb = stats[b];
+    return (sb.priority.length - sa.priority.length) || (sb.open.length - sa.open.length) || a.localeCompare(b);
+  });
+
+  if (!names.length) return '<p class="lane-empty" style="margin:20px">No service jobs found.</p>';
+
+  // Stats table
+  let html = '<div class="stats-wrap"><table class="stats"><thead><tr>' +
+    '<th>Tech</th><th style="text-align:right">Jobs Run (' + STATS_WINDOW_DAYS + 'd)</th>' +
+    '<th style="text-align:right">Avg Ticket</th>' +
+    '<th style="text-align:right">Unpaid</th>' +
+    '<th style="text-align:right">Open</th>' +
+    '<th style="text-align:right">Priority</th>' +
+    '</tr></thead><tbody>';
+
+  for (const name of names) {
+    const s = stats[name];
+    const avg = s.ticketCount ? s.ticketSum / s.ticketCount : null;
+    html += '<tr>' +
+      '<td class="tech-name">' + esc(name) + '</td>' +
+      '<td class="num">' + s.runs + '</td>' +
+      '<td class="num">' + (avg === null ? '\u2014' : fmtMoney(avg)) + '</td>' +
+      '<td class="num">' + (s.unpaid.length ? '<span class="warn">' + s.unpaid.length + '</span>' : '0') + '</td>' +
+      '<td class="num">' + s.open.length + '</td>' +
+      '<td class="num">' + (s.priority.length ? '<span class="warn">' + s.priority.length + '</span>' : '0') + '</td>' +
+    '</tr>';
+  }
+  html += '</tbody></table>' +
+    '<p class="stats-note">Service Calls only. Avg ticket excludes $0 jobs. Unpaid = done but balance due. ' +
+    'Priority = ' + PRIORITY_DAYS + '+ days old, unpaid, no "Followed Up" tag in Workiz.</p></div>';
+
+  // Per-tech job lists
+  for (const name of names) {
+    const s = stats[name];
+    const followUp = s.unpaid.filter(j => matchesSearch(j, search));
+    const open = s.open.filter(j => matchesSearch(j, search));
+    if (!followUp.length && !open.length) continue;
+
+    // priority first within each list
+    const priFirst = (a, z) => (isPriority(z) - isPriority(a)) || (new Date(jobDate(a) || 0) - new Date(jobDate(z) || 0));
+    followUp.sort(priFirst);
+    open.sort(priFirst);
+
+    html += '<section class="tech-section">' +
+      '<div class="tech-header"><span class="tech-title">' + esc(name) + '</span>' +
+      '<span class="tech-sub">' + open.length + ' open \u00b7 ' + followUp.length + ' needing payment</span></div>';
+
+    if (followUp.length) {
+      html += '<div class="bucket"><div class="bucket-title" style="color:#7E1D1D;background:#FDEBEB">Needs Follow-Up / Payment (' + followUp.length + ')</div><div class="rows">';
+      for (const job of followUp) html += rowHtml(job, { hideTech: true, checkPriority: true, showStatus: true });
+      html += '</div></div>';
+    }
+    if (open.length) {
+      html += '<div class="bucket"><div class="bucket-title" style="color:#1D4E7E;background:#EAF2FB">Open Jobs (' + open.length + ')</div><div class="rows">';
+      for (const job of open) html += rowHtml(job, { hideTech: true, checkPriority: true, showStatus: true });
+      html += '</div></div>';
+    }
+    html += '</section>';
+  }
+
+  return html;
+}
+
+// ---- render ----
+function render() {
+  const search = document.getElementById("search").value.trim().toLowerCase();
+  const html = activeLane === "techs" ? renderTechs(search) : renderLanes(search);
+  document.getElementById("content").innerHTML = html;
 }
 
 // ---- tabs ----
 function renderTabs() {
   const tabs = document.getElementById("tabs");
-  const keys = ["all", "projects", "service", "installs"];
+  const keys = ["all", "service", "installs", "projects", "techs"];
   tabs.innerHTML = keys.map(key => {
     const lane = LANES[key];
-    const label = key === "all" ? "All lanes" : lane.label;
+    const label = key === "all" ? "All" : (key === "techs" ? "Techs" : lane.label);
     const active = activeLane === key;
     const bg = active ? (lane ? lane.accent : "#1C2634") : "";
     return '<button class="tab' + (active ? ' active' : '') + '" data-lane="' + key + '"' +
@@ -396,10 +555,9 @@ function renderTabs() {
 // ---- wire up ----
 document.getElementById("refresh-btn").addEventListener("click", () => loadJobs(false));
 document.getElementById("search").addEventListener("input", render);
-document.getElementById("show-finished").addEventListener("change", render);
 renderTabs();
 loadJobs(false);
-setInterval(() => loadJobs(true), 60 * 1000); // auto-refresh every 60s
+setInterval(() => loadJobs(true), 60 * 1000);
 </script>
 </body>
 </html>
