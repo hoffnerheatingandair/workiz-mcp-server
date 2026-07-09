@@ -58,17 +58,22 @@
   }
   .tab {
     border: none; background: none; cursor: pointer;
-    padding: 12px 12px 10px;
+    padding: 12px 14px 10px;
     font-size: 13px; font-weight: 600; color: var(--sub);
     border-bottom: 2px solid transparent;
     white-space: nowrap;
   }
   .tab.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 700; }
+  .tab .badge {
+    display: inline-block; min-width: 18px; text-align: center;
+    background: var(--red); color: #fff; border-radius: 9px;
+    font-size: 11px; font-weight: 800; padding: 1px 5px; margin-left: 5px;
+  }
   #search {
     margin-left: auto;
     padding: 6px 10px; border-radius: 6px;
     border: 1px solid var(--line); font-size: 13px; outline: none;
-    width: 170px; min-width: 120px;
+    width: 160px; min-width: 110px;
   }
   #search:focus { border-color: var(--accent); }
 
@@ -77,6 +82,19 @@
     border-radius: 8px; padding: 14px 16px; color: var(--red); font-size: 14px;
   }
   .loading-box { padding: 56px 20px; text-align: center; color: var(--faint); font-size: 14px; }
+
+  /* Summary strip */
+  .summary-strip {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin: 16px 18px 0;
+  }
+  .strip-card {
+    background: #fff; border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 16px; flex: 1 1 140px;
+  }
+  .strip-num { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .strip-num.red { color: var(--red); }
+  .strip-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sub); margin-top: 2px; }
 
   .section { margin: 22px 18px 0; }
   .section-title {
@@ -87,10 +105,11 @@
   .section-empty { color: var(--faint); font-size: 13px; margin-top: 8px; }
 
   .group-label {
-    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--sub); margin: 14px 0 6px 2px;
+    font-size: 12px; font-weight: 800;
+    color: var(--ink); margin: 14px 0 6px 2px;
+    display: flex; align-items: baseline; gap: 8px;
   }
-  .group-label .n { color: var(--faint); font-weight: 600; }
+  .group-label .n { color: var(--faint); font-weight: 600; font-size: 11px; }
 
   .rows {
     background: #fff; border: 1px solid var(--line); border-radius: 8px;
@@ -115,12 +134,17 @@
     font-size: 12px; color: var(--sub); margin-top: 1px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  .status-pill {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    background: #EEF1F5; color: var(--sub);
+    border-radius: 4px; padding: 1px 7px;
+  }
   .cell-tech {
-    font-size: 12px; font-weight: 600; color: var(--sub);
+    font-size: 12px; font-weight: 700; color: var(--ink);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     text-align: right;
   }
-  .cell-tech.none { color: var(--red); font-weight: 700; }
+  .cell-tech.none { color: var(--red); }
   .cell-money { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
   .cell-money .due { display: block; font-size: 11px; color: var(--red); font-weight: 700; }
   .cell-money.zero { color: var(--faint); font-weight: 500; }
@@ -134,11 +158,19 @@
     font-size: 9px; font-weight: 800; letter-spacing: 0.08em;
     background: var(--red); color: #fff; border-radius: 3px; padding: 1px 5px; margin-right: 6px;
   }
-  .status-note { font-weight: 600; color: var(--faint); }
 
-  /* Techs tab */
+  details.collapsed-list { margin: 14px 0 0; }
+  details.collapsed-list summary {
+    cursor: pointer; font-size: 12px; font-weight: 700; color: var(--sub);
+    padding: 4px 2px; list-style: none;
+  }
+  details.collapsed-list summary::before { content: "\25B8 "; }
+  details.collapsed-list[open] summary::before { content: "\25BE "; }
+  details.collapsed-list .rows { margin-top: 6px; }
+
+  /* KPIs */
   .window-toggle {
-    display: flex; gap: 0; margin: 18px 18px 0;
+    display: flex; margin: 18px 18px 0;
     border: 1px solid var(--line); border-radius: 8px; overflow: hidden; width: fit-content;
     background: #fff;
   }
@@ -147,18 +179,12 @@
     padding: 8px 16px; font-size: 12px; font-weight: 700; color: var(--sub);
   }
   .window-toggle button.active { background: var(--ink); color: #fff; }
-
-  .summary-cards {
-    display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 18px 0;
-  }
+  .summary-cards { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 18px 0; }
   .sum-card {
     background: #fff; border: 1px solid var(--line); border-radius: 8px;
     padding: 12px 16px; flex: 1 1 200px;
   }
-  .sum-label {
-    font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--sub);
-  }
+  .sum-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sub); }
   .sum-value { font-size: 22px; font-weight: 800; margin-top: 3px; font-variant-numeric: tabular-nums; }
   .sum-n { font-size: 12px; color: var(--faint); font-weight: 600; }
 
@@ -217,29 +243,23 @@
 
 <div id="content"></div>
 
-<footer>Live from Workiz &middot; refreshes every 60s &middot; tech stats cover service calls only</footer>
+<footer>Live from Workiz &middot; refreshes every 60s</footer>
 
 <script>
 // ==== RULES — tune to match your Workiz setup ====
-const PROJECT_CLIENTS = ["paramount"];          // client names that are projects
-const PROJECT_ADDRESS_REGEX = /\bward\b/i;      // Ward St jobs are part of the Paramount project
+const PROJECT_CLIENTS = ["paramount"];
+const PROJECT_ADDRESS_REGEX = /\bward\b/i;      // Ward St jobs = Paramount project
 const PROJECT_TYPE_KEYWORDS = ["new construction", "construction"];
 const INSTALL_TYPE_KEYWORDS = ["install", "replacement", "new system", "changeout", "change out"];
 const IN_PROGRESS_STATUSES = ["in progress"];
 const SCHEDULED_STATUSES = ["scheduled", "submitted"];
 const FOLLOWUP_TAGS = ["followed up", "follow up done", "followup"];
 const PRIORITY_DAYS = 30;      // unpaid + this old + no follow-up tag = PRIORITY
-const RUNS_WINDOW_DAYS = 30;   // "jobs run" lookback
+const RUNS_WINDOW_DAYS = 30;   // "jobs run" lookback on KPIs
 // =================================================
 
-const LANES = {
-  service:  { label: "Service Calls" },
-  installs: { label: "Installs" },
-  projects: { label: "Projects" },
-};
-
 let allJobs = [];
-let activeLane = "all";
+let activeTab = "action";
 let statsWindow = "90"; // "90" or "ytd"
 let firstLoad = true;
 
@@ -325,19 +345,24 @@ function classifyLane(job) {
   if (INSTALL_TYPE_KEYWORDS.some(k => type.includes(k))) return "installs";
   return "service";
 }
-// Any status containing these words counts as finished/canceled —
-// catches variants like "Done Pending Approval" or "Completed - Paid"
 const isCanceled = (j) => jobStatus(j).toLowerCase().includes("cancel");
 const isFinished = (j) => {
   const s = jobStatus(j).toLowerCase();
   return s.includes("done") || s.includes("complet") || s.includes("cancel");
 };
 const isDone = (j) => isFinished(j) && !isCanceled(j);
-function bucketOf(j) {
-  const s = jobStatus(j).toLowerCase();
-  if (IN_PROGRESS_STATUSES.includes(s)) return "inprogress";
-  if (SCHEDULED_STATUSES.includes(s)) return "scheduled";
-  return "open";
+const isInProgress = (j) => IN_PROGRESS_STATUSES.includes(jobStatus(j).toLowerCase());
+const isScheduledStatus = (j) => SCHEDULED_STATUSES.includes(jobStatus(j).toLowerCase());
+
+// A job "needs action" if it's not done/canceled AND either
+// its date has passed, or it sits in a custom follow-up status
+// (anything that isn't plain scheduled/submitted/in progress)
+function needsAction(j) {
+  if (isFinished(j)) return false;
+  const age = daysAgo(jobDate(j));
+  const pastDue = age !== null && age >= 1;
+  const followUpStatus = !isScheduledStatus(j) && !isInProgress(j);
+  return pastDue || followUpStatus;
 }
 function isPriority(j) {
   const age = daysAgo(jobDate(j));
@@ -375,6 +400,7 @@ async function loadJobs(silent) {
     document.getElementById("updated").innerHTML =
       '<span class="live-dot"></span>' +
       now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    renderTabs();
     render();
   } catch (err) {
     if (!silent || firstLoad) {
@@ -402,8 +428,9 @@ function rowHtml(job, opts) {
   return '<div class="row' + (pri ? ' priority' : '') + '">' +
     '<div class="cell-main">' +
       '<div class="client">' + (pri ? '<span class="pri-badge">PRIORITY</span>' : '') + esc(clientName(job)) + '</div>' +
-      '<div class="addr">' + esc(jobAddress(job)) +
-        (opts.showStatus ? (jobAddress(job) ? ' \u00b7 ' : '') + '<span class="status-note">' + esc(status) + '</span>' : '') +
+      '<div class="addr">' +
+        (opts.showStatus ? '<span class="status-pill">' + esc(status) + '</span> ' : '') +
+        esc(jobAddress(job)) +
       '</div>' +
     '</div>' +
     (opts.hideTech
@@ -420,13 +447,6 @@ function rowHtml(job, opts) {
   '</div>';
 }
 
-// ---- lane view ----
-const BUCKETS = [
-  { key: "inprogress", label: "In Progress" },
-  { key: "scheduled",  label: "Scheduled" },
-  { key: "open",       label: "Still Open" },
-];
-
 function matchesSearch(j, search) {
   if (!search) return true;
   const hay = [clientName(j), jobAddress(j), jobStatus(j), techNames(j),
@@ -435,42 +455,114 @@ function matchesSearch(j, search) {
   return hay.includes(search);
 }
 
-function renderLanes(search) {
-  const visible = allJobs.filter(j => !isFinished(j) && matchesSearch(j, search));
+// ---- ACTION TAB ----
+function actionData() {
+  const attention = allJobs.filter(needsAction);
+  const owesDone = allJobs.filter(j => isDone(j) && amountDue(j) > 0);
+  const owesUpcoming = allJobs.filter(j => !isFinished(j) && amountDue(j) > 0 && !needsAction(j));
+  const totalDue = owesDone.reduce((sum, j) => sum + amountDue(j), 0);
+  return { attention, owesDone, owesUpcoming, totalDue };
+}
 
-  const board = {
-    service:  { inprogress: [], scheduled: [], open: [] },
-    installs: { inprogress: [], scheduled: [], open: [] },
-    projects: { inprogress: [], scheduled: [], open: [] },
-  };
-  for (const job of visible) board[classifyLane(job)][bucketOf(job)].push(job);
+function renderAction(search) {
+  const { attention, owesDone, owesUpcoming, totalDue } = actionData();
+
+  const att = attention.filter(j => matchesSearch(j, search));
+  const owed = owesDone.filter(j => matchesSearch(j, search));
+  const upcoming = owesUpcoming.filter(j => matchesSearch(j, search));
+
+  let html =
+    '<div class="summary-strip">' +
+      '<div class="strip-card"><div class="strip-num' + (attention.length ? ' red' : '') + '">' + attention.length + '</div><div class="strip-label">Need Action</div></div>' +
+      '<div class="strip-card"><div class="strip-num' + (owesDone.length ? ' red' : '') + '">' + owesDone.length + '</div><div class="strip-label">Owe Money</div></div>' +
+      '<div class="strip-card"><div class="strip-num">' + fmtMoney(totalDue) + '</div><div class="strip-label">Outstanding</div></div>' +
+    '</div>';
+
+  // --- Needs Attention, grouped by tech ---
+  html += '<section class="section"><div class="section-title">Needs Attention <span class="count">' + att.length + '</span></div>';
+
+  if (!att.length) {
+    html += '<p class="section-empty">' + (search ? "No matches." : "Nothing overdue or waiting. Clean board.") + '</p>';
+  } else {
+    const byTech = {};
+    for (const job of att) {
+      const techs = techList(job);
+      const name = techs.length ? techs[0] : "Unassigned";
+      (byTech[name] = byTech[name] || []).push(job);
+    }
+    const techOrder = Object.keys(byTech).sort((a, b) =>
+      (byTech[b].length - byTech[a].length) || a.localeCompare(b));
+    const byAge = (a, z) => new Date(jobDate(a) || 0) - new Date(jobDate(z) || 0);
+
+    for (const name of techOrder) {
+      const list = byTech[name].sort(byAge);
+      html += '<div class="group-label">' + esc(name) + ' <span class="n">' + list.length + '</span></div><div class="rows">';
+      for (const job of list) html += rowHtml(job, { hideTech: true, showStatus: true, checkPriority: true });
+      html += '</div>';
+    }
+  }
+  html += '</section>';
+
+  // --- Owes Money (completed jobs) ---
+  html += '<section class="section"><div class="section-title">Owes Money <span class="count">' + owed.length + '</span></div>';
+
+  if (!owed.length) {
+    html += '<p class="section-empty">' + (search ? "No matches." : "No completed jobs with balances.") + '</p>';
+  } else {
+    owed.sort((a, z) =>
+      (isPriority(z) - isPriority(a)) ||
+      (new Date(jobDate(a) || 0) - new Date(jobDate(z) || 0)));
+    html += '<div class="rows" style="margin-top:10px">';
+    for (const job of owed) html += rowHtml(job, { showStatus: false, checkPriority: true });
+    html += '</div>';
+  }
+
+  // --- Upcoming with balances, collapsed ---
+  if (upcoming.length) {
+    upcoming.sort((a, z) => new Date(jobDate(a) || 0) - new Date(jobDate(z) || 0));
+    html += '<details class="collapsed-list"><summary>Upcoming jobs with balances (' + upcoming.length + ')</summary><div class="rows">';
+    for (const job of upcoming) html += rowHtml(job, { showStatus: true });
+    html += '</div></details>';
+  }
+  html += '</section>';
+
+  return html;
+}
+
+// ---- SCHEDULE TAB ----
+const LANES = {
+  service:  { label: "Service Calls" },
+  installs: { label: "Installs" },
+  projects: { label: "Projects" },
+};
+
+function renderSchedule(search) {
+  // Only clean scheduled / in-progress work; action items live on the Action tab
+  const visible = allJobs.filter(j => !isFinished(j) && !needsAction(j) && matchesSearch(j, search));
+
+  const board = { service: { inprogress: [], scheduled: [] }, installs: { inprogress: [], scheduled: [] }, projects: { inprogress: [], scheduled: [] } };
+  for (const job of visible) {
+    board[classifyLane(job)][isInProgress(job) ? "inprogress" : "scheduled"].push(job);
+  }
   const byDate = (a, z) => new Date(jobDate(a) || 0) - new Date(jobDate(z) || 0);
   for (const lane of Object.values(board)) for (const list of Object.values(lane)) list.sort(byDate);
 
-  const laneKeys = activeLane === "all" ? ["service", "installs", "projects"] : [activeLane];
   let html = "";
-
-  for (const key of laneKeys) {
-    const lane = LANES[key];
-    const total = board[key].inprogress.length + board[key].scheduled.length + board[key].open.length;
-
-    html += '<section class="section">' +
-      '<div class="section-title">' + lane.label + ' <span class="count">' + total + '</span></div>';
-
-    if (total === 0) {
-      html += '<p class="section-empty">' + (search ? "No matches." : "Nothing here right now.") + '</p>';
-    } else if (key === "projects") {
-      const list = board[key].inprogress.concat(board[key].scheduled, board[key].open);
-      html += '<div class="group-label">Ongoing <span class="n">' + list.length + '</span></div><div class="rows">';
-      for (const job of list) html += rowHtml(job, { showStatus: true });
-      html += '</div>';
+  for (const key of ["service", "installs", "projects"]) {
+    const lane = board[key];
+    const total = lane.inprogress.length + lane.scheduled.length;
+    html += '<section class="section"><div class="section-title">' + LANES[key].label + ' <span class="count">' + total + '</span></div>';
+    if (!total) {
+      html += '<p class="section-empty">' + (search ? "No matches." : "Nothing scheduled.") + '</p>';
     } else {
-      for (const bucket of BUCKETS) {
-        const list = board[key][bucket.key];
-        if (!list.length) continue;
-        html += '<div class="group-label">' + bucket.label + ' <span class="n">' + list.length + '</span></div>' +
-          '<div class="rows">';
-        for (const job of list) html += rowHtml(job, { showStatus: bucket.key === "open" });
+      if (lane.inprogress.length) {
+        html += '<div class="group-label">In Progress <span class="n">' + lane.inprogress.length + '</span></div><div class="rows">';
+        for (const job of lane.inprogress) html += rowHtml(job, {});
+        html += '</div>';
+      }
+      if (lane.scheduled.length) {
+        html += '<div class="group-label">Scheduled <span class="n">' + lane.scheduled.length + '</span></div><div class="rows">';
+        for (const job of lane.scheduled) html += rowHtml(job, {});
         html += '</div>';
       }
     }
@@ -479,7 +571,7 @@ function renderLanes(search) {
   return html;
 }
 
-// ---- techs view ----
+// ---- KPIs TAB ----
 function avgOf(jobs) {
   let sum = 0, n = 0;
   for (const j of jobs) {
@@ -489,7 +581,7 @@ function avgOf(jobs) {
   return { avg: n ? sum / n : null, n };
 }
 
-function renderTechs(search) {
+function renderKpis() {
   const wStart = windowStart();
   const now = Date.now();
   const runsStart = now - RUNS_WINDOW_DAYS * 86400000;
@@ -498,16 +590,12 @@ function renderTechs(search) {
   const svc = allJobs.filter(j => classifyLane(j) === "service");
   const inst = allJobs.filter(j => classifyLane(j) === "installs");
 
-  // Company-wide summary numbers for the selected window
-  const svcDone = svc.filter(j => isDone(j) && inWindow(j));
-  const instDone = inst.filter(j => isDone(j) && inWindow(j));
-  const svcAvg = avgOf(svcDone);
-  const instAvg = avgOf(instDone);
+  const svcAvg = avgOf(svc.filter(j => isDone(j) && inWindow(j)));
+  const instAvg = avgOf(inst.filter(j => isDone(j) && inWindow(j)));
 
-  // Per-tech stats (service only)
   const stats = {};
   const ensure = (name) => {
-    if (!stats[name]) stats[name] = { runs: 0, ticket: [], unpaid: [], open: [], priority: [] };
+    if (!stats[name]) stats[name] = { runs: 0, ticket: [], unpaid: 0, open: 0, priority: 0 };
     return stats[name];
   };
 
@@ -517,31 +605,21 @@ function renderTechs(search) {
     const done = isDone(job);
     const due = amountDue(job);
     const d = new Date(jobDate(job) || 0).getTime();
-
     for (const name of names) {
       const s = ensure(name);
       if (done) {
         if (d >= runsStart) s.runs++;
         if (inWindow(job)) s.ticket.push(job);
-        if (due > 0) {
-          s.unpaid.push(job);
-          if (isPriority(job)) s.priority.push(job);
-        }
+        if (due > 0) { s.unpaid++; if (isPriority(job)) s.priority++; }
       } else if (!isCanceled(job)) {
-        s.open.push(job);
-        if (isPriority(job)) s.priority.push(job);
+        s.open++;
+        if (isPriority(job)) s.priority++;
       }
     }
   }
 
-  const names = Object.keys(stats).sort((a, b) => {
-    const sa = stats[a], sb = stats[b];
-    return (sb.priority.length - sa.priority.length) || (sb.open.length - sa.open.length) || a.localeCompare(b);
-  });
+  const names = Object.keys(stats).sort((a, b) => (stats[b].runs - stats[a].runs) || a.localeCompare(b));
 
-  if (!names.length) return '<p class="section-empty" style="margin:20px">No service jobs found.</p>';
-
-  // Window toggle + summary cards
   let html =
     '<div class="window-toggle">' +
       '<button data-window="90" class="' + (statsWindow === "90" ? 'active' : '') + '">Last 90 Days</button>' +
@@ -554,7 +632,6 @@ function renderTechs(search) {
         '<div class="sum-value">' + fmtMoney(instAvg.avg) + ' <span class="sum-n">&middot; ' + instAvg.n + ' jobs</span></div></div>' +
     '</div>';
 
-  // Stats table
   html += '<div class="stats-wrap"><table class="stats"><thead><tr>' +
     '<th>Tech</th><th>Jobs Run (' + RUNS_WINDOW_DAYS + 'd)</th>' +
     '<th>Avg Ticket (' + windowLabel() + ')</th>' +
@@ -568,43 +645,15 @@ function renderTechs(search) {
       '<td>' + esc(name) + '</td>' +
       '<td>' + s.runs + '</td>' +
       '<td>' + (t.avg === null ? '\u2014' : fmtMoney(t.avg) + ' <span class="n">(' + t.n + ')</span>') + '</td>' +
-      '<td>' + (s.unpaid.length ? '<span class="warn">' + s.unpaid.length + '</span>' : '0') + '</td>' +
-      '<td>' + s.open.length + '</td>' +
-      '<td>' + (s.priority.length ? '<span class="warn">' + s.priority.length + '</span>' : '0') + '</td>' +
+      '<td>' + (s.unpaid ? '<span class="warn">' + s.unpaid + '</span>' : '0') + '</td>' +
+      '<td>' + s.open + '</td>' +
+      '<td>' + (s.priority ? '<span class="warn">' + s.priority + '</span>' : '0') + '</td>' +
     '</tr>';
   }
   html += '</tbody></table></div>' +
-    '<p class="stats-note">Avg ticket = completed jobs in the selected window, excluding $0 jobs; count in parentheses. ' +
-    'Service avg covers repairs &amp; tune-ups; install avg covers residential installs (projects excluded). ' +
-    'Unpaid = done with a balance due. Priority = ' + PRIORITY_DAYS + '+ days old, unpaid, no \u201CFollowed Up\u201D tag.</p>';
-
-  // Per-tech job lists
-  for (const name of names) {
-    const s = stats[name];
-    const followUp = s.unpaid.filter(j => matchesSearch(j, search));
-    const open = s.open.filter(j => matchesSearch(j, search));
-    if (!followUp.length && !open.length) continue;
-
-    const priFirst = (a, z) => (isPriority(z) - isPriority(a)) || (new Date(jobDate(a) || 0) - new Date(jobDate(z) || 0));
-    followUp.sort(priFirst);
-    open.sort(priFirst);
-
-    html += '<section class="section">' +
-      '<div class="section-title">' + esc(name) +
-      ' <span class="count">' + open.length + ' open \u00b7 ' + followUp.length + ' unpaid</span></div>';
-
-    if (followUp.length) {
-      html += '<div class="group-label">Needs Follow-Up / Payment <span class="n">' + followUp.length + '</span></div><div class="rows">';
-      for (const job of followUp) html += rowHtml(job, { hideTech: true, checkPriority: true, showStatus: true });
-      html += '</div>';
-    }
-    if (open.length) {
-      html += '<div class="group-label">Open Jobs <span class="n">' + open.length + '</span></div><div class="rows">';
-      for (const job of open) html += rowHtml(job, { hideTech: true, checkPriority: true, showStatus: true });
-      html += '</div>';
-    }
-    html += '</section>';
-  }
+    '<p class="stats-note">Avg ticket = all completed jobs in the window, excluding $0 jobs; count in parentheses. ' +
+    'Service = repairs &amp; tune-ups. Installs = residential (Paramount project excluded). ' +
+    'Priority = ' + PRIORITY_DAYS + '+ days old, unpaid, no \u201CFollowed Up\u201D tag in Workiz.</p>';
 
   return html;
 }
@@ -612,10 +661,13 @@ function renderTechs(search) {
 // ---- render ----
 function render() {
   const search = document.getElementById("search").value.trim().toLowerCase();
-  const html = activeLane === "techs" ? renderTechs(search) : renderLanes(search);
+  let html;
+  if (activeTab === "action") html = renderAction(search);
+  else if (activeTab === "schedule") html = renderSchedule(search);
+  else html = renderKpis();
   document.getElementById("content").innerHTML = html;
 
-  if (activeLane === "techs") {
+  if (activeTab === "kpis") {
     document.querySelectorAll(".window-toggle button").forEach(btn => {
       btn.addEventListener("click", () => {
         statsWindow = btn.dataset.window;
@@ -628,14 +680,18 @@ function render() {
 // ---- tabs ----
 function renderTabs() {
   const tabs = document.getElementById("tabs");
-  const keys = ["all", "service", "installs", "projects", "techs"];
-  tabs.innerHTML = keys.map(key => {
-    const label = key === "all" ? "All" : (key === "techs" ? "Techs" : LANES[key].label);
-    return '<button class="tab' + (activeLane === key ? ' active' : '') + '" data-lane="' + key + '">' + label + '</button>';
-  }).join("");
+  const actionCount = allJobs.length ? actionData().attention.length : 0;
+  const defs = [
+    { key: "action", label: "Action" + (actionCount ? ' <span class="badge">' + actionCount + '</span>' : "") },
+    { key: "schedule", label: "Schedule" },
+    { key: "kpis", label: "KPIs" },
+  ];
+  tabs.innerHTML = defs.map(d =>
+    '<button class="tab' + (activeTab === d.key ? ' active' : '') + '" data-tab="' + d.key + '">' + d.label + '</button>'
+  ).join("");
   tabs.querySelectorAll(".tab").forEach(btn => {
     btn.addEventListener("click", () => {
-      activeLane = btn.dataset.lane;
+      activeTab = btn.dataset.tab;
       renderTabs();
       render();
     });
