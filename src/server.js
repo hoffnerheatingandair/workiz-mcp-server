@@ -100,7 +100,7 @@ app.get("/api/jobs", async (req, res) => {
   try {
     // Serve from cache if it's less than 60s old
     if (jobsCache.data && Date.now() - jobsCache.fetchedAt < JOBS_CACHE_MS) {
-      return res.json({ jobs: jobsCache.data, cached: true });
+      return res.json({ count: jobsCache.data.length, jobs: jobsCache.data, cached: true });
     }
 
     // >>> CHANGE THIS if your env var has a different name <<<
@@ -136,12 +136,14 @@ app.get("/api/jobs", async (req, res) => {
       const page = Array.isArray(body.data) ? body.data : [];
       allJobs.push(...page);
 
-      hasMore = body.has_more === true && page.length > 0;
+      // Keep going as long as pages come back full (100 jobs each).
+      // Workiz doesn't always send has_more, so don't depend on it.
+      hasMore = page.length === 100 || body.has_more === true;
       offset += 100;
     }
 
     jobsCache = { data: allJobs, fetchedAt: Date.now() };
-    res.json({ jobs: allJobs, cached: false });
+    res.json({ count: allJobs.length, jobs: allJobs, cached: false });
   } catch (err) {
     console.error("GET /api/jobs failed:", err.message);
     res.status(500).json({ error: err.message });
