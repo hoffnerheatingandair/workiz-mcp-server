@@ -143,6 +143,10 @@ app.get("/api/jobs", async (req, res) => {
   }
 });
 
+app.get("/board", (req, res) => {
+  res.sendFile(require("path").join(__dirname, "board.html"));
+});
+
 app.listen(PORT, () => {
   console.log(`Workiz MCP server listening on port ${PORT}`);
   console.log(`  MCP endpoint: http://localhost:${PORT}/mcp`);
