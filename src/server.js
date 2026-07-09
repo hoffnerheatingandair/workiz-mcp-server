@@ -118,11 +118,12 @@ app.get("/api/jobs", async (req, res) => {
       .slice(0, 10); // YYYY-MM-DD
 
     const allJobs = [];
+    const seen = new Set();
     let offset = 0;
-    let hasMore = true;
+    let step = 1; // Workiz offset appears to be page-based; verified below
+    let requests = 0;
 
-    // Workiz returns up to 100 jobs per page — loop through all pages
-    while (hasMore && offset < 5000) {
+    while (requests < 60) {
       const url =
         `https://api.workiz.com/api/v1/${token}/job/all/` +
         `?start_date=${start}&offset=${offset}&records=100&only_open=false`;
@@ -134,12 +135,27 @@ app.get("/api/jobs", async (req, res) => {
 
       const body = await response.json();
       const page = Array.isArray(body.data) ? body.data : [];
-      allJobs.push(...page);
+      requests++;
 
-      // Keep going as long as pages come back full (100 jobs each).
-      // Workiz doesn't always send has_more, so don't depend on it.
-      hasMore = page.length === 100 || body.has_more === true;
-      offset += 100;
+      // Add only jobs we haven't seen (dedupe by UUID)
+      let added = 0;
+      for (const job of page) {
+        const id = String(job.UUID || job.SerialId || JSON.stringify(job).length + "-" + allJobs.length);
+        if (!seen.has(id)) {
+          seen.add(id);
+          allJobs.push(job);
+          added++;
+        }
+      }
+
+      // Stop when a page is empty or gave us nothing new
+      if (page.length === 0 || added === 0) break;
+
+      // If most of the page was duplicates, offset is record-based —
+      // switch to stepping by 100 records instead of by page
+      if (added < page.length / 2 && step === 1) step = 100;
+
+      offset += step;
     }
 
     jobsCache = { data: allJobs, fetchedAt: Date.now() };
