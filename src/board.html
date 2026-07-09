@@ -3,198 +3,216 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Hoffner Dispatch Board</title>
+<title>Hoffner Dispatch</title>
 <style>
   :root {
-    --ink: #2A3444;
-    --muted: #7A8699;
-    --bg: #F5F6F8;
-    --line: #E1E6EC;
-    --orange: #E8862E;
-    --blue: #3B7DC4;
-    --purple: #8055C4;
-    --green: #2F8A3C;
-    --red: #C94040;
+    --ink: #1F2733;
+    --sub: #5C6675;
+    --faint: #98A1AF;
+    --bg: #F7F8FA;
+    --line: #E6E9EE;
+    --accent: #E8862E;
+    --red: #C0392B;
+    --red-bg: #FBEEEC;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: var(--bg);
     color: var(--ink);
-    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
     padding-bottom: 60px;
   }
+
   header {
     background: #1C2634;
     color: #fff;
-    padding: 14px 20px;
+    padding: 12px 18px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 3px solid var(--orange);
+    gap: 12px;
   }
-  h1 { font-size: 17px; letter-spacing: 0.12em; font-weight: 800; }
-  .subtitle { font-size: 12px; color: #9AA7B8; margin-top: 2px; }
-  .header-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-  #updated { font-size: 12px; color: #9AA7B8; }
+  h1 { font-size: 15px; letter-spacing: 0.12em; font-weight: 800; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  #updated { font-size: 12px; color: #9AA7B8; white-space: nowrap; }
   .live-dot {
-    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
     background: #4C9A55; margin-right: 5px; animation: blink 2s ease-in-out infinite;
   }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
   #refresh-btn {
-    background: var(--orange); color: #1C2634; border: none; border-radius: 6px;
-    padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer;
+    background: transparent; color: #fff; border: 1px solid #46536A; border-radius: 6px;
+    padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
   }
-  #refresh-btn:disabled { opacity: 0.6; }
+  #refresh-btn:disabled { opacity: 0.5; }
 
-  .toolbar {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    padding: 12px 20px 0;
+  nav {
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 12px;
+    overflow-x: auto;
   }
-  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
   .tab {
-    border: 1px solid #D5DBE3; border-radius: 18px; padding: 6px 13px;
-    font-size: 13px; font-weight: 700; cursor: pointer; background: #fff; color: var(--ink);
+    border: none; background: none; cursor: pointer;
+    padding: 12px 12px 10px;
+    font-size: 13px; font-weight: 600; color: var(--sub);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
   }
-  .tab.active { color: #fff; border-color: transparent; }
+  .tab.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 700; }
   #search {
-    flex: 1 1 200px; max-width: 340px; padding: 8px 12px; border-radius: 6px;
-    border: 1px solid #D5DBE3; font-size: 14px; outline: none; background: #fff;
+    margin-left: auto;
+    padding: 6px 10px; border-radius: 6px;
+    border: 1px solid var(--line); font-size: 13px; outline: none;
+    width: 170px; min-width: 120px;
   }
-  #search:focus { border-color: var(--blue); }
+  #search:focus { border-color: var(--accent); }
 
   .error-box {
-    margin: 20px; background: #FDEBEB; border: 1px solid var(--red);
-    border-radius: 8px; padding: 14px 16px; color: #7E1D1D; font-size: 14px;
+    margin: 20px 18px; background: var(--red-bg); border: 1px solid var(--red);
+    border-radius: 8px; padding: 14px 16px; color: var(--red); font-size: 14px;
   }
-  .loading-box { padding: 48px 20px; text-align: center; }
-  .pulse-bar {
-    display: inline-block; width: 10px; height: 34px; margin: 0 4px; border-radius: 3px;
-    background: linear-gradient(var(--orange), var(--blue));
-    animation: pulse 0.9s ease-in-out infinite;
-  }
-  .pulse-bar:nth-child(2) { animation-delay: 0.15s; }
-  .pulse-bar:nth-child(3) { animation-delay: 0.3s; }
-  @keyframes pulse {
-    0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
-    50% { transform: scaleY(1); opacity: 1; }
-  }
-  @media (prefers-reduced-motion: reduce) { .pulse-bar, .live-dot { animation: none; } }
+  .loading-box { padding: 56px 20px; text-align: center; color: var(--faint); font-size: 14px; }
 
-  .lane { margin: 18px 20px 0; }
-  .lane-header {
-    display: flex; align-items: baseline; gap: 10px;
-    padding: 0 0 6px 10px; border-left: 5px solid;
+  .section { margin: 22px 18px 0; }
+  .section-title {
+    font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink); display: flex; align-items: baseline; gap: 8px;
   }
-  .lane-title { font-size: 15px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
-  .lane-count { font-size: 13px; font-weight: 700; color: var(--muted); }
-  .lane-empty { color: #9AA7B8; font-size: 13px; padding: 8px 0 0 12px; }
+  .section-title .count { font-size: 12px; font-weight: 600; color: var(--faint); }
+  .section-empty { color: var(--faint); font-size: 13px; margin-top: 8px; }
 
-  .bucket { margin-top: 10px; }
-  .bucket-title {
-    font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 6px 12px; border-radius: 6px 6px 0 0;
+  .group-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--sub); margin: 14px 0 6px 2px;
   }
-  .rows { background: #fff; border: 1px solid var(--line); border-radius: 0 0 8px 8px; }
+  .group-label .n { color: var(--faint); font-weight: 600; }
+
+  .rows {
+    background: #fff; border: 1px solid var(--line); border-radius: 8px;
+    overflow: hidden;
+  }
   .row {
-    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    padding: 10px 12px; border-top: 1px solid #F0F2F5;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(90px, auto) 84px 62px;
+    gap: 4px 14px;
+    align-items: center;
+    padding: 9px 14px;
+    border-top: 1px solid #F1F3F6;
   }
   .row:first-child { border-top: none; }
-  .row.priority { border-left: 4px solid var(--red); background: #FFF8F8; }
-  .row-main { flex: 1 1 240px; min-width: 0; }
-  .client { font-size: 14px; font-weight: 700; }
-  .addr { font-size: 12px; color: var(--muted); margin-top: 1px; }
-  .row-tech {
-    flex: 0 0 auto; font-size: 13px; font-weight: 700; color: var(--ink);
-    background: #F1F3F6; border-radius: 5px; padding: 4px 10px; white-space: nowrap;
-  }
-  .row-tech.none { color: var(--red); background: #FDEBEB; }
-  .row-money { flex: 0 0 78px; text-align: right; font-size: 14px; font-weight: 800; color: var(--green); }
-  .row-money.zero { color: #B8C0CC; font-weight: 600; }
-  .row-due { flex: 0 0 auto; font-size: 12px; font-weight: 800; color: var(--red); white-space: nowrap; }
-  .row-date { flex: 0 0 auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
-  .row-num { flex: 0 0 auto; font-size: 11px; color: #B8C0CC; white-space: nowrap; }
-  .old-badge { font-size: 11px; font-weight: 700; background: #FDEBEB; color: var(--red); border-radius: 10px; padding: 2px 8px; }
-  .pri-badge { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; background: var(--red); color: #fff; border-radius: 4px; padding: 2px 7px; }
-  .status-note { font-size: 11px; font-weight: 700; color: var(--muted); }
+  .row.priority { box-shadow: inset 3px 0 0 var(--red); background: #FFFCFB; }
 
-  /* Techs tab */
-  .stats-wrap { margin: 18px 20px 0; overflow-x: auto; }
+  .cell-main { min-width: 0; }
+  .client {
+    font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .addr {
+    font-size: 12px; color: var(--sub); margin-top: 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .cell-tech {
+    font-size: 12px; font-weight: 600; color: var(--sub);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-align: right;
+  }
+  .cell-tech.none { color: var(--red); font-weight: 700; }
+  .cell-money { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .cell-money .due { display: block; font-size: 11px; color: var(--red); font-weight: 700; }
+  .cell-money.zero { color: var(--faint); font-weight: 500; }
+  .cell-date {
+    text-align: right; font-size: 12px; color: var(--faint);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .cell-date .old { color: var(--red); font-weight: 700; }
+  .pri-badge {
+    display: inline-block; vertical-align: 1px;
+    font-size: 9px; font-weight: 800; letter-spacing: 0.08em;
+    background: var(--red); color: #fff; border-radius: 3px; padding: 1px 5px; margin-right: 6px;
+  }
+  .status-note { font-weight: 600; color: var(--faint); }
+
+  /* Techs stats table */
+  .stats-wrap { margin: 22px 18px 0; overflow-x: auto; }
   table.stats {
     width: 100%; border-collapse: collapse; background: #fff;
     border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
     font-size: 13px;
   }
   table.stats th {
-    text-align: left; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
-    color: var(--muted); background: #F1F3F6; padding: 9px 12px; white-space: nowrap;
+    text-align: right; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--sub); padding: 9px 12px; border-bottom: 1px solid var(--line);
+    white-space: nowrap; font-weight: 700;
   }
-  table.stats td { padding: 9px 12px; border-top: 1px solid #F0F2F5; white-space: nowrap; }
-  table.stats td.num { text-align: right; font-weight: 700; }
-  table.stats td.tech-name { font-weight: 800; }
-  table.stats td .warn { color: var(--red); }
-  .stats-note { font-size: 11px; color: var(--muted); margin: 6px 2px 0; }
-
-  .tech-section { margin: 18px 20px 0; }
-  .tech-header {
-    display: flex; align-items: baseline; gap: 10px;
-    padding: 0 0 6px 10px; border-left: 5px solid var(--orange);
+  table.stats th:first-child { text-align: left; }
+  table.stats td {
+    padding: 9px 12px; border-top: 1px solid #F1F3F6;
+    text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap;
   }
-  .tech-title { font-size: 15px; font-weight: 800; }
-  .tech-sub { font-size: 12px; color: var(--muted); }
+  table.stats td:first-child { text-align: left; font-weight: 700; }
+  table.stats td .warn { color: var(--red); font-weight: 800; }
+  .stats-note { font-size: 11px; color: var(--faint); margin: 8px 2px 0; line-height: 1.5; }
 
-  footer { text-align: center; font-size: 12px; color: #9AA7B8; margin-top: 40px; }
+  footer { text-align: center; font-size: 11px; color: var(--faint); margin-top: 44px; }
 
-  @media (max-width: 560px) {
-    .row { gap: 8px; }
-    .row-money { flex-basis: 64px; }
-    .row-num { display: none; }
+  @media (max-width: 620px) {
+    .row {
+      grid-template-columns: minmax(0, 1fr) 84px;
+      grid-template-areas:
+        "main money"
+        "tech date";
+      row-gap: 2px;
+    }
+    .cell-main { grid-area: main; }
+    .cell-money { grid-area: money; }
+    .cell-tech { grid-area: tech; text-align: left; }
+    .cell-date { grid-area: date; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <h1>HOFFNER DISPATCH</h1>
-    <p class="subtitle">Live from Workiz &middot; auto-refreshes every 60s</p>
-  </div>
+  <h1>HOFFNER DISPATCH</h1>
   <div class="header-right">
     <span id="updated"></span>
     <button id="refresh-btn">Refresh</button>
   </div>
 </header>
 
-<div class="toolbar">
-  <div class="tabs" id="tabs"></div>
-  <input type="text" id="search" placeholder="Search name, address, tech&hellip;" />
-</div>
+<nav>
+  <div id="tabs" style="display:flex"></div>
+  <input type="text" id="search" placeholder="Search&hellip;" />
+</nav>
 
 <div id="content"></div>
 
-<footer>Done jobs hidden on lane views &middot; Tech stats cover Service Calls only (repairs &amp; tune-ups)</footer>
+<footer>Live from Workiz &middot; refreshes every 60s &middot; tech stats cover service calls only</footer>
 
 <script>
 // ==== RULES — tune to match your Workiz setup ====
-const PROJECT_CLIENTS = ["paramount", "ward"];
-const PROJECT_TYPE_KEYWORDS = ["new construction", "construction", "commercial", "project"];
+const PROJECT_CLIENTS = ["paramount"];          // client names that are projects
+const PROJECT_ADDRESS_REGEX = /\bward\b/i;      // Ward St jobs are part of the Paramount project
+const PROJECT_TYPE_KEYWORDS = ["new construction", "construction"];
 const INSTALL_TYPE_KEYWORDS = ["install", "replacement", "new system", "changeout", "change out"];
 const IN_PROGRESS_STATUSES = ["in progress"];
 const SCHEDULED_STATUSES = ["scheduled", "submitted"];
 const FINISHED_STATUSES = ["done", "completed", "canceled", "cancelled"];
 const CANCELED_STATUSES = ["canceled", "cancelled"];
 const FOLLOWUP_TAGS = ["followed up", "follow up done", "followup"];
-const PRIORITY_DAYS = 30;    // unpaid + this old + no follow-up tag = PRIORITY
-const STATS_WINDOW_DAYS = 30; // jobs run / avg ticket lookback
+const PRIORITY_DAYS = 30;      // unpaid + this old + no follow-up tag = PRIORITY
+const RUNS_WINDOW_DAYS = 30;   // "jobs run" lookback
+const TICKET_WINDOW_DAYS = 90; // "avg ticket" lookback
 // =================================================
 
 const LANES = {
-  service:  { label: "Service Calls", accent: "#E8862E", soft: "#FFF4E5", dark: "#8A4A00" },
-  installs: { label: "Installs", accent: "#3B7DC4", soft: "#EAF2FB", dark: "#1D4E7E" },
-  projects: { label: "Projects", accent: "#8055C4", soft: "#F3ECFB", dark: "#4A2A80" },
+  service:  { label: "Service Calls" },
+  installs: { label: "Installs" },
+  projects: { label: "Projects" },
 };
 
 let allJobs = [];
@@ -268,7 +286,12 @@ const jobDate = (j) => f(j, "JobDateTime", "CreatedDate");
 function classifyLane(job) {
   const name = clientName(job).toLowerCase();
   const type = String(f(job, "JobType")).toLowerCase();
-  if (PROJECT_CLIENTS.some(c => name.includes(c)) || PROJECT_TYPE_KEYWORDS.some(k => type.includes(k))) return "projects";
+  const addr = jobAddress(job);
+  if (
+    PROJECT_CLIENTS.some(c => name.includes(c)) ||
+    PROJECT_ADDRESS_REGEX.test(addr) ||
+    PROJECT_TYPE_KEYWORDS.some(k => type.includes(k))
+  ) return "projects";
   if (INSTALL_TYPE_KEYWORDS.some(k => type.includes(k))) return "installs";
   return "service";
 }
@@ -295,11 +318,10 @@ async function loadJobs(silent) {
   const btn = document.getElementById("refresh-btn");
   if (!silent) {
     btn.disabled = true;
-    btn.textContent = "Refreshing\u2026";
+    btn.textContent = "\u2026";
     if (firstLoad) {
       document.getElementById("content").innerHTML =
-        '<div class="loading-box"><span class="pulse-bar"></span><span class="pulse-bar"></span><span class="pulse-bar"></span>' +
-        '<p style="color:#7A8699;margin-top:14px;font-size:14px">Pulling live from Workiz\u2026</p></div>';
+        '<div class="loading-box">Pulling live from Workiz\u2026<br><span style="font-size:12px">first load can take ~30s if the server is waking up</span></div>';
     }
   }
   try {
@@ -316,7 +338,7 @@ async function loadJobs(silent) {
     firstLoad = false;
     const now = new Date();
     document.getElementById("updated").innerHTML =
-      '<span class="live-dot"></span>Live \u00b7 ' +
+      '<span class="live-dot"></span>' +
       now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
     render();
   } catch (err) {
@@ -340,32 +362,34 @@ function rowHtml(job, opts) {
   const age = daysAgo(created);
   const status = jobStatus(job);
   const pri = opts.checkPriority && isPriority(job);
+  const showOld = !isFinished(job) && age !== null && age > 14;
 
   return '<div class="row' + (pri ? ' priority' : '') + '">' +
-    '<div class="row-main">' +
-      '<div class="client">' + (pri ? '<span class="pri-badge">PRIORITY</span> ' : '') + esc(clientName(job)) + '</div>' +
+    '<div class="cell-main">' +
+      '<div class="client">' + (pri ? '<span class="pri-badge">PRIORITY</span>' : '') + esc(clientName(job)) + '</div>' +
       '<div class="addr">' + esc(jobAddress(job)) +
-        (opts.showStatus ? ' &middot; <span class="status-note">' + esc(status) + '</span>' : '') +
+        (opts.showStatus ? (jobAddress(job) ? ' \u00b7 ' : '') + '<span class="status-note">' + esc(status) + '</span>' : '') +
       '</div>' +
     '</div>' +
-    (opts.hideTech ? '' :
-      (tech
-        ? '<span class="row-tech">' + esc(tech) + '</span>'
-        : '<span class="row-tech none">Unassigned</span>')) +
-    '<span class="row-money' + (amt === null || amt === 0 ? ' zero' : '') + '">' + fmtMoney(amt) + '</span>' +
-    (due > 0 ? '<span class="row-due">due ' + fmtMoney(due) + '</span>' : '') +
-    '<span class="row-date">' + esc(formatDate(created)) +
-      (age !== null && age > 14 && !isFinished(job) ? ' <span class="old-badge">' + age + 'd</span>' : '') +
-    '</span>' +
-    '<span class="row-num">#' + esc(f(job, "SerialId", "JobId", "UUID")) + '</span>' +
+    (opts.hideTech
+      ? '<div class="cell-tech"></div>'
+      : (tech
+        ? '<div class="cell-tech">' + esc(tech) + '</div>'
+        : '<div class="cell-tech none">Unassigned</div>')) +
+    '<div class="cell-money' + (amt === null || amt === 0 ? ' zero' : '') + '">' + fmtMoney(amt) +
+      (due > 0 ? '<span class="due">due ' + fmtMoney(due) + '</span>' : '') +
+    '</div>' +
+    '<div class="cell-date">' + esc(formatDate(created)) +
+      (showOld ? '<br><span class="old">' + age + 'd</span>' : '') +
+    '</div>' +
   '</div>';
 }
 
 // ---- lane view ----
 const BUCKETS = [
-  { key: "inprogress", label: "In Progress", color: "#2F8A3C", bg: "#EDF7EE" },
-  { key: "scheduled",  label: "Scheduled",   color: "#1D4E7E", bg: "#EAF2FB" },
-  { key: "open",       label: "Still Open",  color: "#7E1D1D", bg: "#FDEBEB" },
+  { key: "inprogress", label: "In Progress" },
+  { key: "scheduled",  label: "Scheduled" },
+  { key: "open",       label: "Still Open" },
 ];
 
 function matchesSearch(j, search) {
@@ -377,7 +401,7 @@ function matchesSearch(j, search) {
 }
 
 function renderLanes(search) {
-  let visible = allJobs.filter(j => !isFinished(j) && matchesSearch(j, search));
+  const visible = allJobs.filter(j => !isFinished(j) && matchesSearch(j, search));
 
   const board = {
     service:  { inprogress: [], scheduled: [], open: [] },
@@ -395,24 +419,24 @@ function renderLanes(search) {
     const lane = LANES[key];
     const total = board[key].inprogress.length + board[key].scheduled.length + board[key].open.length;
 
-    html += '<section class="lane">' +
-      '<div class="lane-header" style="border-color:' + lane.accent + '">' +
-        '<span class="lane-title" style="color:' + lane.dark + '">' + lane.label + '</span>' +
-        '<span class="lane-count">' + total + '</span>' +
-      '</div>';
+    html += '<section class="section">' +
+      '<div class="section-title">' + lane.label + ' <span class="count">' + total + '</span></div>';
 
     if (total === 0) {
-      html += '<p class="lane-empty">' + (search ? "No matches." : "Nothing here right now.") + '</p>';
+      html += '<p class="section-empty">' + (search ? "No matches." : "Nothing here right now.") + '</p>';
+    } else if (key === "projects") {
+      const list = board[key].inprogress.concat(board[key].scheduled, board[key].open);
+      html += '<div class="group-label">Ongoing <span class="n">' + list.length + '</span></div><div class="rows">';
+      for (const job of list) html += rowHtml(job, { showStatus: true });
+      html += '</div>';
     } else {
       for (const bucket of BUCKETS) {
         const list = board[key][bucket.key];
         if (!list.length) continue;
-        html += '<div class="bucket">' +
-          '<div class="bucket-title" style="color:' + bucket.color + ';background:' + bucket.bg + '">' +
-            bucket.label + ' (' + list.length + ')</div>' +
+        html += '<div class="group-label">' + bucket.label + ' <span class="n">' + list.length + '</span></div>' +
           '<div class="rows">';
         for (const job of list) html += rowHtml(job, { showStatus: bucket.key === "open" });
-        html += '</div></div>';
+        html += '</div>';
       }
     }
     html += '</section>';
@@ -424,10 +448,10 @@ function renderLanes(search) {
 function renderTechs(search) {
   const svc = allJobs.filter(j => classifyLane(j) === "service");
   const now = Date.now();
-  const windowStart = now - STATS_WINDOW_DAYS * 86400000;
+  const runsStart = now - RUNS_WINDOW_DAYS * 86400000;
+  const ticketStart = now - TICKET_WINDOW_DAYS * 86400000;
 
-  // Build per-tech stats. Multi-tech jobs credit each tech fully.
-  const stats = {}; // name -> {runs, ticketSum, ticketCount, unpaid:[], open:[], priority:[]}
+  const stats = {};
   const ensure = (name) => {
     if (!stats[name]) stats[name] = { runs: 0, ticketSum: 0, ticketCount: 0, unpaid: [], open: [], priority: [] };
     return stats[name];
@@ -444,10 +468,8 @@ function renderTechs(search) {
     for (const name of names) {
       const s = ensure(name);
       if (done) {
-        if (d >= windowStart) {
-          s.runs++;
-          if (amt !== null && amt > 0) { s.ticketSum += amt; s.ticketCount++; }
-        }
+        if (d >= runsStart) s.runs++;
+        if (d >= ticketStart && amt !== null && amt > 0) { s.ticketSum += amt; s.ticketCount++; }
         if (due > 0) {
           s.unpaid.push(job);
           if (isPriority(job)) s.priority.push(job);
@@ -459,64 +481,59 @@ function renderTechs(search) {
     }
   }
 
-  // Sort techs: most priority first, then most open
   const names = Object.keys(stats).sort((a, b) => {
     const sa = stats[a], sb = stats[b];
     return (sb.priority.length - sa.priority.length) || (sb.open.length - sa.open.length) || a.localeCompare(b);
   });
 
-  if (!names.length) return '<p class="lane-empty" style="margin:20px">No service jobs found.</p>';
+  if (!names.length) return '<p class="section-empty" style="margin:20px">No service jobs found.</p>';
 
-  // Stats table
   let html = '<div class="stats-wrap"><table class="stats"><thead><tr>' +
-    '<th>Tech</th><th style="text-align:right">Jobs Run (' + STATS_WINDOW_DAYS + 'd)</th>' +
-    '<th style="text-align:right">Avg Ticket</th>' +
-    '<th style="text-align:right">Unpaid</th>' +
-    '<th style="text-align:right">Open</th>' +
-    '<th style="text-align:right">Priority</th>' +
+    '<th>Tech</th><th>Jobs Run (' + RUNS_WINDOW_DAYS + 'd)</th>' +
+    '<th>Avg Ticket (' + TICKET_WINDOW_DAYS + 'd)</th>' +
+    '<th>Unpaid</th><th>Open</th><th>Priority</th>' +
     '</tr></thead><tbody>';
 
   for (const name of names) {
     const s = stats[name];
     const avg = s.ticketCount ? s.ticketSum / s.ticketCount : null;
     html += '<tr>' +
-      '<td class="tech-name">' + esc(name) + '</td>' +
-      '<td class="num">' + s.runs + '</td>' +
-      '<td class="num">' + (avg === null ? '\u2014' : fmtMoney(avg)) + '</td>' +
-      '<td class="num">' + (s.unpaid.length ? '<span class="warn">' + s.unpaid.length + '</span>' : '0') + '</td>' +
-      '<td class="num">' + s.open.length + '</td>' +
-      '<td class="num">' + (s.priority.length ? '<span class="warn">' + s.priority.length + '</span>' : '0') + '</td>' +
+      '<td>' + esc(name) + '</td>' +
+      '<td>' + s.runs + '</td>' +
+      '<td>' + (avg === null ? '\u2014' : fmtMoney(avg)) + '</td>' +
+      '<td>' + (s.unpaid.length ? '<span class="warn">' + s.unpaid.length + '</span>' : '0') + '</td>' +
+      '<td>' + s.open.length + '</td>' +
+      '<td>' + (s.priority.length ? '<span class="warn">' + s.priority.length + '</span>' : '0') + '</td>' +
     '</tr>';
   }
   html += '</tbody></table>' +
-    '<p class="stats-note">Service Calls only. Avg ticket excludes $0 jobs. Unpaid = done but balance due. ' +
-    'Priority = ' + PRIORITY_DAYS + '+ days old, unpaid, no "Followed Up" tag in Workiz.</p></div>';
+    '<p class="stats-note">Service calls only (repairs &amp; tune-ups). Avg ticket = completed jobs over ' + TICKET_WINDOW_DAYS +
+    ' days, excluding $0 jobs. Unpaid = done with a balance due. Priority = ' + PRIORITY_DAYS +
+    '+ days old, unpaid, no \u201CFollowed Up\u201D tag in Workiz.</p></div>';
 
-  // Per-tech job lists
   for (const name of names) {
     const s = stats[name];
     const followUp = s.unpaid.filter(j => matchesSearch(j, search));
     const open = s.open.filter(j => matchesSearch(j, search));
     if (!followUp.length && !open.length) continue;
 
-    // priority first within each list
     const priFirst = (a, z) => (isPriority(z) - isPriority(a)) || (new Date(jobDate(a) || 0) - new Date(jobDate(z) || 0));
     followUp.sort(priFirst);
     open.sort(priFirst);
 
-    html += '<section class="tech-section">' +
-      '<div class="tech-header"><span class="tech-title">' + esc(name) + '</span>' +
-      '<span class="tech-sub">' + open.length + ' open \u00b7 ' + followUp.length + ' needing payment</span></div>';
+    html += '<section class="section">' +
+      '<div class="section-title">' + esc(name) +
+      ' <span class="count">' + open.length + ' open \u00b7 ' + followUp.length + ' unpaid</span></div>';
 
     if (followUp.length) {
-      html += '<div class="bucket"><div class="bucket-title" style="color:#7E1D1D;background:#FDEBEB">Needs Follow-Up / Payment (' + followUp.length + ')</div><div class="rows">';
+      html += '<div class="group-label">Needs Follow-Up / Payment <span class="n">' + followUp.length + '</span></div><div class="rows">';
       for (const job of followUp) html += rowHtml(job, { hideTech: true, checkPriority: true, showStatus: true });
-      html += '</div></div>';
+      html += '</div>';
     }
     if (open.length) {
-      html += '<div class="bucket"><div class="bucket-title" style="color:#1D4E7E;background:#EAF2FB">Open Jobs (' + open.length + ')</div><div class="rows">';
+      html += '<div class="group-label">Open Jobs <span class="n">' + open.length + '</span></div><div class="rows">';
       for (const job of open) html += rowHtml(job, { hideTech: true, checkPriority: true, showStatus: true });
-      html += '</div></div>';
+      html += '</div>';
     }
     html += '</section>';
   }
@@ -536,12 +553,8 @@ function renderTabs() {
   const tabs = document.getElementById("tabs");
   const keys = ["all", "service", "installs", "projects", "techs"];
   tabs.innerHTML = keys.map(key => {
-    const lane = LANES[key];
-    const label = key === "all" ? "All" : (key === "techs" ? "Techs" : lane.label);
-    const active = activeLane === key;
-    const bg = active ? (lane ? lane.accent : "#1C2634") : "";
-    return '<button class="tab' + (active ? ' active' : '') + '" data-lane="' + key + '"' +
-      (active ? ' style="background:' + bg + '"' : '') + '>' + label + '</button>';
+    const label = key === "all" ? "All" : (key === "techs" ? "Techs" : LANES[key].label);
+    return '<button class="tab' + (activeLane === key ? ' active' : '') + '" data-lane="' + key + '">' + label + '</button>';
   }).join("");
   tabs.querySelectorAll(".tab").forEach(btn => {
     btn.addEventListener("click", () => {
