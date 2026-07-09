@@ -136,8 +136,33 @@
   }
   .status-note { font-weight: 600; color: var(--faint); }
 
-  /* Techs stats table */
-  .stats-wrap { margin: 22px 18px 0; overflow-x: auto; }
+  /* Techs tab */
+  .window-toggle {
+    display: flex; gap: 0; margin: 18px 18px 0;
+    border: 1px solid var(--line); border-radius: 8px; overflow: hidden; width: fit-content;
+    background: #fff;
+  }
+  .window-toggle button {
+    border: none; background: none; cursor: pointer;
+    padding: 8px 16px; font-size: 12px; font-weight: 700; color: var(--sub);
+  }
+  .window-toggle button.active { background: var(--ink); color: #fff; }
+
+  .summary-cards {
+    display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 18px 0;
+  }
+  .sum-card {
+    background: #fff; border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px 16px; flex: 1 1 200px;
+  }
+  .sum-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--sub);
+  }
+  .sum-value { font-size: 22px; font-weight: 800; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .sum-n { font-size: 12px; color: var(--faint); font-weight: 600; }
+
+  .stats-wrap { margin: 14px 18px 0; overflow-x: auto; }
   table.stats {
     width: 100%; border-collapse: collapse; background: #fff;
     border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
@@ -155,7 +180,8 @@
   }
   table.stats td:first-child { text-align: left; font-weight: 700; }
   table.stats td .warn { color: var(--red); font-weight: 800; }
-  .stats-note { font-size: 11px; color: var(--faint); margin: 8px 2px 0; line-height: 1.5; }
+  table.stats td .n { color: var(--faint); font-size: 11px; font-weight: 600; }
+  .stats-note { font-size: 11px; color: var(--faint); margin: 8px 20px 0; line-height: 1.5; }
 
   footer { text-align: center; font-size: 11px; color: var(--faint); margin-top: 44px; }
 
@@ -206,7 +232,6 @@ const CANCELED_STATUSES = ["canceled", "cancelled"];
 const FOLLOWUP_TAGS = ["followed up", "follow up done", "followup"];
 const PRIORITY_DAYS = 30;      // unpaid + this old + no follow-up tag = PRIORITY
 const RUNS_WINDOW_DAYS = 30;   // "jobs run" lookback
-const TICKET_WINDOW_DAYS = 90; // "avg ticket" lookback
 // =================================================
 
 const LANES = {
@@ -217,6 +242,7 @@ const LANES = {
 
 let allJobs = [];
 let activeLane = "all";
+let statsWindow = "90"; // "90" or "ytd"
 let firstLoad = true;
 
 // ---- field helpers ----
@@ -281,6 +307,12 @@ function daysAgo(raw) {
   return Math.floor((Date.now() - d.getTime()) / 86400000);
 }
 const jobDate = (j) => f(j, "JobDateTime", "CreatedDate");
+
+function windowStart() {
+  if (statsWindow === "ytd") return new Date(new Date().getFullYear(), 0, 1).getTime();
+  return Date.now() - 90 * 86400000;
+}
+const windowLabel = () => statsWindow === "ytd" ? "YTD" : "90d";
 
 // ---- classification ----
 function classifyLane(job) {
@@ -444,16 +476,35 @@ function renderLanes(search) {
   return html;
 }
 
-// ---- techs view (Service Calls only: repairs & tune-ups) ----
+// ---- techs view ----
+function avgOf(jobs) {
+  let sum = 0, n = 0;
+  for (const j of jobs) {
+    const amt = money(j);
+    if (amt !== null && amt > 0) { sum += amt; n++; }
+  }
+  return { avg: n ? sum / n : null, n };
+}
+
 function renderTechs(search) {
-  const svc = allJobs.filter(j => classifyLane(j) === "service");
+  const wStart = windowStart();
   const now = Date.now();
   const runsStart = now - RUNS_WINDOW_DAYS * 86400000;
-  const ticketStart = now - TICKET_WINDOW_DAYS * 86400000;
+  const inWindow = (j) => new Date(jobDate(j) || 0).getTime() >= wStart;
 
+  const svc = allJobs.filter(j => classifyLane(j) === "service");
+  const inst = allJobs.filter(j => classifyLane(j) === "installs");
+
+  // Company-wide summary numbers for the selected window
+  const svcDone = svc.filter(j => isDone(j) && inWindow(j));
+  const instDone = inst.filter(j => isDone(j) && inWindow(j));
+  const svcAvg = avgOf(svcDone);
+  const instAvg = avgOf(instDone);
+
+  // Per-tech stats (service only)
   const stats = {};
   const ensure = (name) => {
-    if (!stats[name]) stats[name] = { runs: 0, ticketSum: 0, ticketCount: 0, unpaid: [], open: [], priority: [] };
+    if (!stats[name]) stats[name] = { runs: 0, ticket: [], unpaid: [], open: [], priority: [] };
     return stats[name];
   };
 
@@ -462,14 +513,13 @@ function renderTechs(search) {
     const names = techs.length ? techs : ["Unassigned"];
     const done = isDone(job);
     const due = amountDue(job);
-    const amt = money(job);
     const d = new Date(jobDate(job) || 0).getTime();
 
     for (const name of names) {
       const s = ensure(name);
       if (done) {
         if (d >= runsStart) s.runs++;
-        if (d >= ticketStart && amt !== null && amt > 0) { s.ticketSum += amt; s.ticketCount++; }
+        if (inWindow(job)) s.ticket.push(job);
         if (due > 0) {
           s.unpaid.push(job);
           if (isPriority(job)) s.priority.push(job);
@@ -488,29 +538,44 @@ function renderTechs(search) {
 
   if (!names.length) return '<p class="section-empty" style="margin:20px">No service jobs found.</p>';
 
-  let html = '<div class="stats-wrap"><table class="stats"><thead><tr>' +
+  // Window toggle + summary cards
+  let html =
+    '<div class="window-toggle">' +
+      '<button data-window="90" class="' + (statsWindow === "90" ? 'active' : '') + '">Last 90 Days</button>' +
+      '<button data-window="ytd" class="' + (statsWindow === "ytd" ? 'active' : '') + '">Year to Date</button>' +
+    '</div>' +
+    '<div class="summary-cards">' +
+      '<div class="sum-card"><div class="sum-label">Avg Service Ticket (' + windowLabel() + ')</div>' +
+        '<div class="sum-value">' + fmtMoney(svcAvg.avg) + ' <span class="sum-n">&middot; ' + svcAvg.n + ' jobs</span></div></div>' +
+      '<div class="sum-card"><div class="sum-label">Avg Residential Install (' + windowLabel() + ')</div>' +
+        '<div class="sum-value">' + fmtMoney(instAvg.avg) + ' <span class="sum-n">&middot; ' + instAvg.n + ' jobs</span></div></div>' +
+    '</div>';
+
+  // Stats table
+  html += '<div class="stats-wrap"><table class="stats"><thead><tr>' +
     '<th>Tech</th><th>Jobs Run (' + RUNS_WINDOW_DAYS + 'd)</th>' +
-    '<th>Avg Ticket (' + TICKET_WINDOW_DAYS + 'd)</th>' +
+    '<th>Avg Ticket (' + windowLabel() + ')</th>' +
     '<th>Unpaid</th><th>Open</th><th>Priority</th>' +
     '</tr></thead><tbody>';
 
   for (const name of names) {
     const s = stats[name];
-    const avg = s.ticketCount ? s.ticketSum / s.ticketCount : null;
+    const t = avgOf(s.ticket);
     html += '<tr>' +
       '<td>' + esc(name) + '</td>' +
       '<td>' + s.runs + '</td>' +
-      '<td>' + (avg === null ? '\u2014' : fmtMoney(avg)) + '</td>' +
+      '<td>' + (t.avg === null ? '\u2014' : fmtMoney(t.avg) + ' <span class="n">(' + t.n + ')</span>') + '</td>' +
       '<td>' + (s.unpaid.length ? '<span class="warn">' + s.unpaid.length + '</span>' : '0') + '</td>' +
       '<td>' + s.open.length + '</td>' +
       '<td>' + (s.priority.length ? '<span class="warn">' + s.priority.length + '</span>' : '0') + '</td>' +
     '</tr>';
   }
-  html += '</tbody></table>' +
-    '<p class="stats-note">Service calls only (repairs &amp; tune-ups). Avg ticket = completed jobs over ' + TICKET_WINDOW_DAYS +
-    ' days, excluding $0 jobs. Unpaid = done with a balance due. Priority = ' + PRIORITY_DAYS +
-    '+ days old, unpaid, no \u201CFollowed Up\u201D tag in Workiz.</p></div>';
+  html += '</tbody></table></div>' +
+    '<p class="stats-note">Avg ticket = completed jobs in the selected window, excluding $0 jobs; count in parentheses. ' +
+    'Service avg covers repairs &amp; tune-ups; install avg covers residential installs (projects excluded). ' +
+    'Unpaid = done with a balance due. Priority = ' + PRIORITY_DAYS + '+ days old, unpaid, no \u201CFollowed Up\u201D tag.</p>';
 
+  // Per-tech job lists
   for (const name of names) {
     const s = stats[name];
     const followUp = s.unpaid.filter(j => matchesSearch(j, search));
@@ -546,6 +611,15 @@ function render() {
   const search = document.getElementById("search").value.trim().toLowerCase();
   const html = activeLane === "techs" ? renderTechs(search) : renderLanes(search);
   document.getElementById("content").innerHTML = html;
+
+  if (activeLane === "techs") {
+    document.querySelectorAll(".window-toggle button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        statsWindow = btn.dataset.window;
+        render();
+      });
+    });
+  }
 }
 
 // ---- tabs ----
