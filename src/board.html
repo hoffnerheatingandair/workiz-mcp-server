@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hoffner Dispatch Board</title>
+<style>
+  :root {
+    --ink: #2A3444;
+    --muted: #7A8699;
+    --bg: #F5F6F8;
+    --card-border: #E1E6EC;
+    --orange: #E8862E;
+    --blue: #3B7DC4;
+    --purple: #8055C4;
+    --red: #C94040;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    padding-bottom: 60px;
+  }
+  header {
+    background: #1C2634;
+    color: #fff;
+    padding: 20px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid var(--orange);
+  }
+  .brand-row { display: flex; align-items: center; gap: 10px; }
+  h1 { font-size: 21px; letter-spacing: 0.14em; font-weight: 800; }
+  .subtitle { margin-top: 6px; font-size: 13px; color: #9AA7B8; }
+  .header-right { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+  .head-stat { text-align: center; }
+  .head-num { display: block; font-size: 26px; font-weight: 800; line-height: 1; }
+  .head-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #9AA7B8; }
+  #refresh-btn {
+    background: var(--orange); color: #1C2634; border: none; border-radius: 6px;
+    padding: 10px 18px; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  #refresh-btn:hover:not(:disabled) { filter: brightness(1.08); }
+  #refresh-btn:disabled { opacity: 0.6; }
+  .toolbar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 14px 24px 4px;
+  }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tab {
+    border: 1px solid #D5DBE3; border-radius: 20px; padding: 7px 14px;
+    font-size: 13px; font-weight: 700; cursor: pointer; background: #fff; color: var(--ink);
+  }
+  .tab.active { color: #fff; border-color: transparent; }
+  #search {
+    flex: 1 1 220px; max-width: 360px; padding: 9px 14px; border-radius: 6px;
+    border: 1px solid #D5DBE3; font-size: 14px; outline: none; background: #fff;
+  }
+  #search:focus { border-color: var(--blue); }
+  .toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5A6678; cursor: pointer; }
+  #updated { font-size: 12px; color: var(--muted); }
+  .live-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: #4C9A55; margin-right: 5px; animation: blink 2s ease-in-out infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .error-box {
+    margin: 20px 24px; background: #FDEBEB; border: 1px solid var(--red);
+    border-radius: 8px; padding: 16px 18px; color: #7E1D1D; font-size: 14px;
+  }
+  .loading-box { padding: 48px 24px; text-align: center; }
+  .pulse-bar {
+    display: inline-block; width: 10px; height: 34px; margin: 0 4px; border-radius: 3px;
+    background: linear-gradient(var(--orange), var(--blue));
+    animation: pulse 0.9s ease-in-out infinite;
+  }
+  .pulse-bar:nth-child(2) { animation-delay: 0.15s; }
+  .pulse-bar:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes pulse {
+    0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pulse-bar, .live-dot { animation: none; }
+  }
+
+  .lane { padding: 20px 24px 0; }
+  .lane-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-left: 12px; margin-bottom: 12px; border-left: 5px solid;
+  }
+  .lane-title { font-size: 17px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; margin-right: 10px; }
+  .lane-blurb { font-size: 12px; color: var(--muted); }
+  .lane-count { font-size: 13px; font-weight: 800; border-radius: 12px; padding: 3px 12px; }
+  .lane-empty { color: #9AA7B8; font-size: 14px; padding-left: 12px; }
+  .bucket-title {
+    font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    margin: 14px 0 8px; padding-left: 12px;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    background: #fff; border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 12px 14px; box-shadow: 0 1px 2px rgba(28,38,52,0.05);
+    transition: box-shadow 0.15s ease;
+  }
+  .card:hover { box-shadow: 0 3px 10px rgba(28,38,52,0.12); }
+  .card.finished { opacity: 0.55; }
+  .card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .job-num { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; }
+  .status-badge { font-size: 11px; font-weight: 700; border-radius: 10px; padding: 3px 9px; white-space: nowrap; }
+  .client { font-size: 15px; font-weight: 700; margin-top: 6px; }
+  .meta { font-size: 13px; color: #5A6678; margin-top: 3px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+  .chip { font-size: 11px; font-weight: 600; background: #F1F3F6; color: var(--ink); border-radius: 4px; padding: 3px 8px; }
+  .chip-quiet { font-size: 11px; font-weight: 600; color: var(--muted); }
+  .old-badge { font-size: 11px; font-weight: 700; background: #FDEBEB; color: var(--red); border-radius: 10px; padding: 2px 8px; }
+  .phone { font-size: 13px; color: var(--blue); margin-top: 8px; font-weight: 600; }
+  .phone a { color: inherit; text-decoration: none; }
+  footer { text-align: center; font-size: 12px; color: #9AA7B8; margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="brand-row">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2c1 4-4 6-4 11a4 4 0 0 0 8 0c0-2-1-3-1-3s3 1 3 4a6 6 0 0 1-12 0C6 8 11 6 12 2z" fill="#E8862E"/>
+      </svg>
+      <h1>DISPATCH BOARD</h1>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B7DC4" stroke-width="2" aria-hidden="true">
+        <path d="M12 2v20M4 6l16 12M20 6L4 18"/>
+      </svg>
+    </div>
+    <p class="subtitle">Hoffner Heating &amp; Air &middot; live from Workiz</p>
+  </div>
+  <div class="header-right">
+    <div class="head-stat"><span class="head-num" id="count-projects" style="color:#8055C4">&mdash;</span><span class="head-label">Projects</span></div>
+    <div class="head-stat"><span class="head-num" id="count-service" style="color:#E8862E">&mdash;</span><span class="head-label">Service Calls</span></div>
+    <div class="head-stat"><span class="head-num" id="count-installs" style="color:#3B7DC4">&mdash;</span><span class="head-label">Installs</span></div>
+    <button id="refresh-btn">Refresh</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="tabs" id="tabs"></div>
+  <input type="text" id="search" placeholder="Search name, address, tech, job #&hellip;" />
+  <label class="toggle"><input type="checkbox" id="show-finished" /> Show finished</label>
+  <span id="updated"></span>
+</div>
+
+<div id="content"></div>
+
+<footer>Live from Workiz &middot; auto-refreshes every 60 seconds</footer>
+
+<script>
+// ==== CLASSIFICATION RULES — tune these to match your Workiz setup ====
+const PROJECT_CLIENTS = ["paramount", "ward"];
+const PROJECT_TYPE_KEYWORDS = ["new construction", "construction", "commercial", "project"];
+const INSTALL_TYPE_KEYWORDS = ["install", "replacement", "new system", "changeout", "change out"];
+const SCHEDULED_STATUSES = ["scheduled", "in progress"];
+const FINISHED_STATUSES = ["done", "completed", "canceled", "cancelled"];
+// ======================================================================
+
+const LANES = {
+  projects: { label: "Projects", accent: "#8055C4", soft: "#F3ECFB", dark: "#4A2A80", blurb: "Ongoing commercial & new construction" },
+  service:  { label: "Service Calls", accent: "#E8862E", soft: "#FFF4E5", dark: "#8A4A00", blurb: "Repairs, tune-ups, diagnostics" },
+  installs: { label: "Installs", accent: "#3B7DC4", soft: "#EAF2FB", dark: "#1D4E7E", blurb: "System installs & replacements" },
+};
+
+let allJobs = [];
+let activeLane = "all";
+let firstLoad = true;
+
+// ---- field helpers ----
+function f(job) {
+  for (let i = 1; i < arguments.length; i++) {
+    const n = arguments[i];
+    if (job[n] !== undefined && job[n] !== null && job[n] !== "") return job[n];
+    const lower = n.toLowerCase();
+    for (const k of Object.keys(job)) {
+      if (k.toLowerCase() === lower && job[k] !== null && job[k] !== "") return job[k];
+    }
+  }
+  return "";
+}
+const jobStatus = (j) => String(f(j, "Status", "SubStatus") || "Unknown").trim();
+function clientName(j) {
+  const company = f(j, "Company", "CompanyName");
+  const person = [f(j, "FirstName"), f(j, "LastName")].filter(Boolean).join(" ");
+  if (company && person) return person + " \u2014 " + company;
+  return person || company || f(j, "ClientName", "Name") || "Unknown client";
+}
+const jobAddress = (j) => [f(j, "Address"), f(j, "City")].filter(Boolean).join(", ");
+function techNames(j) {
+  const team = f(j, "Team");
+  if (Array.isArray(team)) {
+    return team.map(t => typeof t === "string" ? t : (t && (t.Name || t.name)) || "").filter(Boolean).join(", ");
+  }
+  return f(j, "Tech", "AssignedTo") || "";
+}
+function formatDate(raw) {
+  if (!raw) return "";
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return String(raw);
+  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+}
+function daysAgo(raw) {
+  if (!raw) return null;
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return null;
+  return Math.floor((Date.now() - d.getTime()) / 86400000);
+}
+
+// ---- classification ----
+function classifyLane(job) {
+  const name = clientName(job).toLowerCase();
+  const type = String(f(job, "JobType")).toLowerCase();
+  if (PROJECT_CLIENTS.some(c => name.includes(c)) || PROJECT_TYPE_KEYWORDS.some(k => type.includes(k))) return "projects";
+  if (INSTALL_TYPE_KEYWORDS.some(k => type.includes(k))) return "installs";
+  return "service";
+}
+const isScheduled = (j) => SCHEDULED_STATUSES.includes(jobStatus(j).toLowerCase());
+const isFinished = (j) => FINISHED_STATUSES.includes(jobStatus(j).toLowerCase());
+
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// ---- fetch ----
+async function loadJobs(silent) {
+  const btn = document.getElementById("refresh-btn");
+  if (!silent) {
+    btn.disabled = true;
+    btn.textContent = "Refreshing\u2026";
+    if (firstLoad) {
+      document.getElementById("content").innerHTML =
+        '<div class="loading-box"><span class="pulse-bar"></span><span class="pulse-bar"></span><span class="pulse-bar"></span>' +
+        '<p style="color:#7A8699;margin-top:14px;font-size:14px">Pulling live from Workiz\u2026</p></div>';
+    }
+  }
+  try {
+    const res = await fetch("/api/jobs");
+    if (!res.ok) {
+      let detail = "";
+      try { detail = (await res.json()).error || ""; } catch (e) {}
+      throw new Error("Server returned " + res.status + ". " + detail);
+    }
+    const body = await res.json();
+    const jobs = Array.isArray(body.jobs) ? body.jobs : (Array.isArray(body.data) ? body.data : []);
+    if (jobs.length === 0) throw new Error("The server responded but returned zero jobs. Check the Workiz API token on Render.");
+    allJobs = jobs;
+    firstLoad = false;
+    const now = new Date();
+    document.getElementById("updated").innerHTML =
+      '<span class="live-dot"></span>Live \u00b7 updated ' +
+      now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    render();
+  } catch (err) {
+    if (!silent || firstLoad) {
+      document.getElementById("content").innerHTML =
+        '<div class="error-box"><strong>Couldn\u2019t load the board.</strong> ' + esc(err.message) + '</div>';
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Refresh";
+  }
+}
+
+// ---- render ----
+function render() {
+  const search = document.getElementById("search").value.trim().toLowerCase();
+  const showFinished = document.getElementById("show-finished").checked;
+
+  let visible = allJobs;
+  if (!showFinished) visible = visible.filter(j => !isFinished(j));
+  if (search) {
+    visible = visible.filter(j => {
+      const hay = [clientName(j), jobAddress(j), jobStatus(j), techNames(j),
+        String(f(j, "SerialId", "UUID", "JobId")), String(f(j, "JobType")), String(f(j, "Phone"))
+      ].join(" ").toLowerCase();
+      return hay.includes(search);
+    });
+  }
+
+  const board = {
+    projects: { scheduled: [], open: [] },
+    service: { scheduled: [], open: [] },
+    installs: { scheduled: [], open: [] },
+  };
+  for (const job of visible) {
+    const lane = classifyLane(job);
+    board[lane][isScheduled(job) ? "scheduled" : "open"].push(job);
+  }
+  const byDate = (a, z) => new Date(f(a, "JobDateTime", "CreatedDate") || 0) - new Date(f(z, "JobDateTime", "CreatedDate") || 0);
+  for (const key of Object.keys(board)) {
+    board[key].scheduled.sort(byDate);
+    board[key].open.sort(byDate);
+  }
+
+  // header counts
+  for (const key of Object.keys(LANES)) {
+    document.getElementById("count-" + key).textContent = board[key].scheduled.length + board[key].open.length;
+  }
+
+  const laneKeys = activeLane === "all" ? ["projects", "service", "installs"] : [activeLane];
+  let html = "";
+
+  for (const key of laneKeys) {
+    const lane = LANES[key];
+    const scheduled = board[key].scheduled;
+    const open = board[key].open;
+    const total = scheduled.length + open.length;
+
+    html += '<section class="lane">' +
+      '<div class="lane-header" style="border-color:' + lane.accent + '">' +
+        '<div><span class="lane-title" style="color:' + lane.dark + '">' + lane.label + '</span>' +
+        '<span class="lane-blurb">' + lane.blurb + '</span></div>' +
+        '<span class="lane-count" style="background:' + lane.soft + ';color:' + lane.dark + '">' + total + '</span>' +
+      '</div>';
+
+    if (total === 0) {
+      html += '<p class="lane-empty">' + (search ? "Nothing here matches your search." : "Nothing in this lane right now.") + '</p>';
+    } else if (key === "projects") {
+      html += cardGrid(scheduled.concat(open), lane, false);
+    } else {
+      if (scheduled.length) {
+        html += '<h3 class="bucket-title" style="color:' + lane.dark + '">Scheduled <span style="font-weight:600;color:#7A8699">(' + scheduled.length + ')</span></h3>';
+        html += cardGrid(scheduled, lane, false);
+      }
+      if (open.length) {
+        html += '<h3 class="bucket-title" style="color:#7E1D1D">Still open <span style="font-weight:600;color:#7A8699">(' + open.length + ')</span></h3>';
+        html += cardGrid(open, lane, true);
+      }
+    }
+    html += '</section>';
+  }
+
+  document.getElementById("content").innerHTML = html;
+}
+
+function cardGrid(jobs, lane, showAge) {
+  let html = '<div class="cards">';
+  for (const job of jobs) {
+    const serial = f(job, "SerialId", "JobId", "UUID");
+    const created = f(job, "JobDateTime", "CreatedDate");
+    const age = daysAgo(created);
+    const phone = f(job, "Phone");
+    html += '<div class="card' + (isFinished(job) ? ' finished' : '') + '">' +
+      '<div class="card-top"><span class="job-num">#' + esc(serial) + '</span>' +
+      '<span class="status-badge" style="background:' + lane.soft + ';color:' + lane.dark + '">' + esc(jobStatus(job)) + '</span></div>' +
+      '<div class="client">' + esc(clientName(job)) + '</div>' +
+      (jobAddress(job) ? '<div class="meta">' + esc(jobAddress(job)) + '</div>' : '') +
+      '<div class="meta-row">' +
+        (f(job, "JobType") ? '<span class="chip">' + esc(f(job, "JobType")) + '</span>' : '') +
+        (techNames(job) ? '<span class="chip">' + esc(techNames(job)) + '</span>' : '') +
+        (created ? '<span class="chip-quiet">' + esc(formatDate(created)) + '</span>' : '') +
+        (showAge && age !== null && age > 14 ? '<span class="old-badge">' + age + 'd old</span>' : '') +
+      '</div>' +
+      (phone ? '<div class="phone"><a href="tel:' + esc(phone) + '">' + esc(phone) + '</a></div>' : '') +
+    '</div>';
+  }
+  return html + '</div>';
+}
+
+// ---- tabs ----
+function renderTabs() {
+  const tabs = document.getElementById("tabs");
+  const keys = ["all", "projects", "service", "installs"];
+  tabs.innerHTML = keys.map(key => {
+    const lane = LANES[key];
+    const label = key === "all" ? "All lanes" : lane.label;
+    const active = activeLane === key;
+    const bg = active ? (lane ? lane.accent : "#1C2634") : "";
+    return '<button class="tab' + (active ? ' active' : '') + '" data-lane="' + key + '"' +
+      (active ? ' style="background:' + bg + '"' : '') + '>' + label + '</button>';
+  }).join("");
+  tabs.querySelectorAll(".tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeLane = btn.dataset.lane;
+      renderTabs();
+      render();
+    });
+  });
+}
+
+// ---- wire up ----
+document.getElementById("refresh-btn").addEventListener("click", () => loadJobs(false));
+document.getElementById("search").addEventListener("input", render);
+document.getElementById("show-finished").addEventListener("change", render);
+renderTabs();
+loadJobs(false);
+setInterval(() => loadJobs(true), 60 * 1000); // auto-refresh every 60s
+</script>
+</body>
+</html>
