@@ -227,8 +227,6 @@ const PROJECT_TYPE_KEYWORDS = ["new construction", "construction"];
 const INSTALL_TYPE_KEYWORDS = ["install", "replacement", "new system", "changeout", "change out"];
 const IN_PROGRESS_STATUSES = ["in progress"];
 const SCHEDULED_STATUSES = ["scheduled", "submitted"];
-const FINISHED_STATUSES = ["done", "completed", "canceled", "cancelled"];
-const CANCELED_STATUSES = ["canceled", "cancelled"];
 const FOLLOWUP_TAGS = ["followed up", "follow up done", "followup"];
 const PRIORITY_DAYS = 30;      // unpaid + this old + no follow-up tag = PRIORITY
 const RUNS_WINDOW_DAYS = 30;   // "jobs run" lookback
@@ -327,8 +325,13 @@ function classifyLane(job) {
   if (INSTALL_TYPE_KEYWORDS.some(k => type.includes(k))) return "installs";
   return "service";
 }
-const isFinished = (j) => FINISHED_STATUSES.includes(jobStatus(j).toLowerCase());
-const isCanceled = (j) => CANCELED_STATUSES.includes(jobStatus(j).toLowerCase());
+// Any status containing these words counts as finished/canceled —
+// catches variants like "Done Pending Approval" or "Completed - Paid"
+const isCanceled = (j) => jobStatus(j).toLowerCase().includes("cancel");
+const isFinished = (j) => {
+  const s = jobStatus(j).toLowerCase();
+  return s.includes("done") || s.includes("complet") || s.includes("cancel");
+};
 const isDone = (j) => isFinished(j) && !isCanceled(j);
 function bucketOf(j) {
   const s = jobStatus(j).toLowerCase();
