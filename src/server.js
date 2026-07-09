@@ -6,6 +6,8 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { registerWorkizTools } from "./tools.js";
 import ghlWebhookRoutes from "./ghlWebhookRoutes.js";
+import path from "node:path";
+import fs from "node:fs";
 
 const PORT = process.env.PORT || 3000;
 const MCP_SERVER_KEY = process.env.MCP_SERVER_KEY;
@@ -144,14 +146,9 @@ app.get("/api/jobs", async (req, res) => {
 });
 
 app.get("/board", (req, res) => {
-  const path = require("path");
-  const fs = require("fs");
   const spots = [
-    path.join(__dirname, "board.html"),
-    path.join(__dirname, "src", "board.html"),
-    path.join(__dirname, "..", "board.html"),
-    path.join(process.cwd(), "board.html"),
     path.join(process.cwd(), "src", "board.html"),
+    path.join(process.cwd(), "board.html"),
   ];
   const file = spots.find((p) => fs.existsSync(p));
   if (!file) {
@@ -161,7 +158,6 @@ app.get("/board", (req, res) => {
   }
   res.sendFile(file);
 });
-
 app.listen(PORT, () => {
   console.log(`Workiz MCP server listening on port ${PORT}`);
   console.log(`  MCP endpoint: http://localhost:${PORT}/mcp`);
