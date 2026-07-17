@@ -225,25 +225,8 @@ async function deleteBlockIgnoring404(eventId) {
   }
 }
 
-// TEMP: logs the complete raw request body before auth is even checked, so
-// every hit -- authenticated or not -- prints exactly what was sent. Remove
-// once extractWorkizJob's field names below are confirmed against a real
-// payload.
-function logRawBody(req, res, next) {
-  console.log("RAW WORKIZ BODY:", JSON.stringify(req.body));
-  next();
-}
-
-router.post("/webhooks/workiz/job", logRawBody, checkBearerAuth("WORKIZ_WEBHOOK_SECRET"), async (req, res) => {
+router.post("/webhooks/workiz/job", checkBearerAuth("WORKIZ_WEBHOOK_SECRET"), async (req, res) => {
   try {
-    // TEMP: log the full raw payload broken into pieces so we can see
-    // Workiz's actual field names for schedule start/end and tech
-    // assignment inside `data`. Remove/gate behind a DEBUG env var once
-    // extractWorkizJob is filled in with confirmed field names.
-    console.log("[workizWebhook] RAW trigger:", JSON.stringify(req.body?.trigger));
-    console.log("[workizWebhook] RAW data:", JSON.stringify(req.body?.data, null, 2));
-    console.log("[workizWebhook] RAW data.team:", JSON.stringify(req.body?.data?.team));
-
     const job = extractWorkizJob(req.body);
     console.log(
       `[workizWebhook] uuid=${job.uuid} status=${job.status} triggerType=${job.triggerType}`
