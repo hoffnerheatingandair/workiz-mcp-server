@@ -9,11 +9,22 @@
 
 const BASE = (process.env.WORKIZ_API_BASE || "https://api.workiz.com/api/v1").replace(/\/$/, "");
 const TOKEN = process.env.WORKIZ_API_TOKEN;
+// Workiz issues TWO credentials (Settings > Integrations > Developer): the
+// API token (URL path, works for reads) and the API secret, which must be
+// sent as `auth_secret` in the JSON body of every WRITE. Without it, all
+// POST endpoints (job/create, job/update, lead/*, ...) return 401 even
+// though reads succeed -- confirmed against the live API 2026-07-17.
+const SECRET = process.env.WORKIZ_API_SECRET;
 
 if (!TOKEN) {
   // Don't crash on import (useful for local tool-schema testing), but warn loudly.
   console.warn(
     "[workizClient] WORKIZ_API_TOKEN is not set. Requests to Workiz will fail until it is configured."
+  );
+}
+if (!SECRET) {
+  console.warn(
+    "[workizClient] WORKIZ_API_SECRET is not set. Workiz WRITE operations (create/update job or lead) will fail with 401 until it is configured."
   );
 }
 
@@ -31,10 +42,18 @@ function buildUrl(path, query) {
 
 async function request(method, path, { query, body } = {}) {
   const url = buildUrl(path, query);
+
+  // Writes require the API secret in the body (see note on SECRET above).
+  // Injected here centrally so no individual endpoint can forget it.
+  let payload = body;
+  if (method !== "GET" && SECRET) {
+    payload = { ...(body || {}), auth_secret: SECRET };
+  }
+
   const res = await fetch(url, {
     method,
     headers: { "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
+    body: payload ? JSON.stringify(payload) : undefined,
   });
 
   const text = await res.text();
