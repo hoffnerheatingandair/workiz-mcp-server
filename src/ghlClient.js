@@ -9,6 +9,7 @@
 const BASE = (process.env.GHL_API_BASE || "https://services.leadconnectorhq.com").replace(/\/$/, "");
 const PIT = process.env.GHL_PIT;
 const LOCATION_ID = process.env.GHL_LOC;
+import { fetchWithTimeout } from "./http.js";
 
 if (!PIT) {
   console.warn("[ghlClient] GHL_PIT is not set. Requests to GHL will fail until it is configured.");
@@ -18,6 +19,8 @@ if (!LOCATION_ID) {
 }
 
 async function request(method, path, { query, body, version } = {}) {
+  if (!PIT) throw new Error("GHL_PIT is not configured");
+  if (!LOCATION_ID) throw new Error("GHL_LOC is not configured");
   const url = new URL(`${BASE}${path.startsWith("/") ? path : `/${path}`}`);
   if (query) {
     for (const [key, value] of Object.entries(query)) {
@@ -27,7 +30,7 @@ async function request(method, path, { query, body, version } = {}) {
     }
   }
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -36,7 +39,7 @@ async function request(method, path, { query, body, version } = {}) {
       Version: version,
     },
     body: body ? JSON.stringify(body) : undefined,
-  });
+  }, "GHL");
 
   const text = await res.text();
   let json;

@@ -5,12 +5,13 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { registerWorkizTools } from "./tools.js";
+import * as workiz from "./workizClient.js";
 import ghlWebhookRoutes from "./ghlWebhookRoutes.js";
 import path from "node:path";
 import fs from "node:fs";
+import { pathToFileURL } from "node:url";
 
 const PORT = process.env.PORT || 3000;
-const MCP_SERVER_KEY = process.env.MCP_SERVER_KEY;
 
 // ---- Build a fresh McpServer + tool registrations for each session ----
 function buildServer() {
@@ -27,10 +28,10 @@ app.use(express.json());
 
 // Simple shared-secret auth so random internet traffic can't call your server.
 // Claude's custom connector setup lets you supply a Bearer token; put your
-// MCP_SERVER_KEY value there. If MCP_SERVER_KEY is unset, auth is skipped
-// (fine for local testing only -- always set it before deploying publicly).
+// MCP_SERVER_KEY value there. Missing configuration must never disable auth.
 function checkAuth(req, res, next) {
-  if (!MCP_SERVER_KEY) return next();
+  const MCP_SERVER_KEY = process.env.MCP_SERVER_KEY;
+  if (!MCP_SERVER_KEY) return res.status(503).json({ error: "Server authentication is not configured" });
   const header = req.headers["authorization"] || "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : header;
   if (token !== MCP_SERVER_KEY) {
@@ -93,7 +94,7 @@ app.get("/health", (req, res) => res.json({ status: "ok" }));
 let jobsCache = { data: null, fetchedAt: 0 };
 const JOBS_CACHE_MS = 60 * 1000; // 60 seconds
 
-app.get("/api/jobs", async (req, res) => {
+app.get("/api/jobs", checkAuth, async (req, res) => {
   // Allow the job board (browser) to call this endpoint
   res.set("Access-Control-Allow-Origin", "*");
 
@@ -124,16 +125,12 @@ app.get("/api/jobs", async (req, res) => {
     let requests = 0;
 
     while (requests < 60) {
-      const url =
-        `https://api.workiz.com/api/v1/${token}/job/all/` +
-        `?start_date=${start}&offset=${offset}&records=100&only_open=false`;
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Workiz API returned ${response.status}`);
-      }
-
-      const body = await response.json();
+      const body = await workiz.getAllJobs({
+        start_date: start,
+        offset,
+        records: 100,
+        only_open: false,
+      });
       const page = Array.isArray(body.data) ? body.data : [];
       requests++;
 
@@ -166,7 +163,7 @@ app.get("/api/jobs", async (req, res) => {
   }
 });
 
-app.get("/board", (req, res) => {
+app.get("/board", checkAuth, (req, res) => {
   const spots = [
     path.join(process.cwd(), "src", "board.html"),
     path.join(process.cwd(), "board.html"),
@@ -179,10 +176,12 @@ app.get("/board", (req, res) => {
   }
   res.sendFile(file);
 });
-app.listen(PORT, () => {
+export { app, checkAuth };
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) app.listen(PORT, () => {
   console.log(`Workiz MCP server listening on port ${PORT}`);
   console.log(`  MCP endpoint: http://localhost:${PORT}/mcp`);
-  if (!MCP_SERVER_KEY) {
-    console.warn("  WARNING: MCP_SERVER_KEY is not set — server is unauthenticated. Set it before deploying publicly.");
+  if (!process.env.MCP_SERVER_KEY) {
+    console.warn("  WARNING: MCP_SERVER_KEY is not set — protected routes are unavailable.");
   }
 });
