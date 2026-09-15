@@ -15,6 +15,8 @@ const TOKEN = process.env.WORKIZ_API_TOKEN;
 // POST endpoints (job/create, job/update, lead/*, ...) return 401 even
 // though reads succeed -- confirmed against the live API 2026-07-17.
 const SECRET = process.env.WORKIZ_API_SECRET;
+import { fetchWithTimeout } from "./http.js";
+import { workizFetch } from "./workizRateLimit.js";
 
 if (!TOKEN) {
   // Don't crash on import (useful for local tool-schema testing), but warn loudly.
@@ -41,6 +43,8 @@ function buildUrl(path, query) {
 }
 
 async function request(method, path, { query, body } = {}) {
+  if (!TOKEN) throw new Error("WORKIZ_API_TOKEN is not configured");
+  if (method !== "GET" && !SECRET) throw new Error("WORKIZ_API_SECRET is not configured");
   const url = buildUrl(path, query);
 
   // Writes require the API secret in the body (see note on SECRET above).
@@ -50,11 +54,11 @@ async function request(method, path, { query, body } = {}) {
     payload = { ...(body || {}), auth_secret: SECRET };
   }
 
-  const res = await fetch(url, {
+  const res = await workizFetch(() => fetchWithTimeout(url, {
     method,
     headers: { "Content-Type": "application/json" },
     body: payload ? JSON.stringify(payload) : undefined,
-  });
+  }, "WORKIZ"));
 
   const text = await res.text();
   let json;

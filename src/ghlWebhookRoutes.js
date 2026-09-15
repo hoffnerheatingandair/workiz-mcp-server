@@ -42,7 +42,7 @@ function fail(res, status, err) {
   // Full stack for real server errors; a one-liner for expected 4xx (auth
   // failures / bad payloads) so bot traffic doesn't flood the logs.
   if (status >= 500) {
-    console.error("[ghlWebhook]", err);
+    console.error("[ghlWebhook] request failed", { status: err?.status || status, type: err?.name || "Error" });
   } else {
     console.warn("[ghlWebhook]", err?.message || String(err));
   }
@@ -75,6 +75,7 @@ function extractBooking(body = {}) {
   const appointment = body.appointment || body;
 
   return {
+    appointmentId: appointment.id || appointment.appointmentId || body.appointment_id,
     contactId: contact.id || contact.contactId || body.contact_id,
     firstName: contact.firstName || contact.first_name,
     lastName: contact.lastName || contact.last_name,
@@ -96,11 +97,35 @@ function extractBooking(body = {}) {
   };
 }
 
+export function jobTypeName(jobType) {
+  if (typeof jobType === "string") return jobType.trim();
+  if (jobType && typeof jobType === "object") {
+    return String(jobType.name || jobType.Name || jobType.label || "").trim();
+  }
+  return "";
+}
+
+export function isNewSystemEstimate(jobType) {
+  return jobTypeName(jobType).toLowerCase() === "new system estimate";
+}
+
 const router = Router();
+const processedBookings = new Map();
+const MAX_BOOKING_KEYS = 10_000;
+
+function bookingKey(booking) {
+  return booking.appointmentId ||
+    (booking.contactId && booking.startTime ? `${booking.contactId}:${booking.startTime}` : null);
+}
 
 router.post("/webhooks/ghl/booking", checkBearerAuth("GHL_WEBHOOK_SECRET"), async (req, res) => {
   try {
     const booking = extractBooking(req.body);
+    const key = bookingKey(booking);
+
+    if (key && processedBookings.has(key)) {
+      return ok(res, { duplicate: true });
+    }
 
     if (!booking.phone) {
       return fail(res, 400, new Error("Webhook payload is missing a contact phone number"));
@@ -131,7 +156,7 @@ router.post("/webhooks/ghl/booking", checkBearerAuth("GHL_WEBHOOK_SECRET"), asyn
       Country: booking.country || "US",
       JobDateTime: start,
       JobEndDateTime: end,
-      JobType: booking.jobType || "Service Call",
+      JobType: jobTypeName(booking.jobType) || "Service Call",
       JobSource: "GHL Online Booking",
       JobName: booking.title,
       JobNotes: booking.notes,
@@ -148,8 +173,51 @@ router.post("/webhooks/ghl/booking", checkBearerAuth("GHL_WEBHOOK_SECRET"), asyn
       if (isEmpty) delete jobFields[key];
     }
 
-    const result = await workiz.createJob(jobFields);
+    // Reserve before awaiting Workiz so concurrently delivered webhooks cannot
+    // create two jobs. Failures release the reservation for a later retry.
+    if (key) {
+      processedBookings.set(key, Date.now());
+      if (processedBookings.size > MAX_BOOKING_KEYS) {
+        processedBookings.delete(processedBookings.keys().next().value);
+      }
+    }
+    let result;
+    try {
+      result = await workiz.createJob(jobFields);
+    } catch (err) {
+      if (key) processedBookings.delete(key);
+      throw err;
+    }
     return ok(res, { workiz: result, matchedPhone: phoneE164 });
+  } catch (err) {
+    return fail(res, 500, err);
+  }
+});
+
+// Workiz lead-created automation -> GHL contact. Keep this deliberately thin:
+// GHL owns contact matching/merge behavior and this route only translates the
+// confirmed webhook fields without persisting a second copy of customer data.
+router.post("/webhooks/workiz/lead", checkBearerAuth("WORKIZ_WEBHOOK_SECRET"), async (req, res) => {
+  try {
+    const lead = req.body?.data || {};
+    const contact = {
+      firstName: lead.firstName,
+      lastName: lead.lastName,
+      email: lead.email,
+      phone: lead.phone ? toE164(lead.phone) : undefined,
+      address1: lead.address || lead.address1,
+      city: lead.city,
+      state: lead.state,
+      postalCode: lead.postalCode,
+    };
+    for (const [key, value] of Object.entries(contact)) {
+      if (value === undefined || value === null || value === "") delete contact[key];
+    }
+    if (!contact.phone && !contact.email) {
+      return fail(res, 400, new Error("Webhook payload is missing lead phone/email"));
+    }
+    const result = await ghl.createContact(contact);
+    return ok(res, { contactId: result.contact?.id || result.id });
   } catch (err) {
     return fail(res, 500, err);
   }
@@ -188,7 +256,7 @@ function extractWorkizJob(body = {}) {
     // Client name + job type, for the human-readable block title below.
     clientFirstName: data.firstName,
     clientLastName: data.lastName,
-    jobTypeName: data.jobType?.name,
+    jobTypeName: jobTypeName(data.jobType),
   };
 }
 
@@ -225,29 +293,9 @@ async function deleteBlockIgnoring404(eventId) {
   }
 }
 
-// TEMP: logs the complete raw request body before auth is even checked, so
-// every hit -- authenticated or not -- prints exactly what was sent. Remove
-// once extractWorkizJob's field names below are confirmed against a real
-// payload.
-function logRawBody(req, res, next) {
-  console.log("RAW WORKIZ BODY:", JSON.stringify(req.body));
-  next();
-}
-
-router.post("/webhooks/workiz/job", logRawBody, checkBearerAuth("WORKIZ_WEBHOOK_SECRET"), async (req, res) => {
+router.post("/webhooks/workiz/job", checkBearerAuth("WORKIZ_WEBHOOK_SECRET"), async (req, res) => {
   try {
-    // TEMP: log the full raw payload broken into pieces so we can see
-    // Workiz's actual field names for schedule start/end and tech
-    // assignment inside `data`. Remove/gate behind a DEBUG env var once
-    // extractWorkizJob is filled in with confirmed field names.
-    console.log("[workizWebhook] RAW trigger:", JSON.stringify(req.body?.trigger));
-    console.log("[workizWebhook] RAW data:", JSON.stringify(req.body?.data, null, 2));
-    console.log("[workizWebhook] RAW data.team:", JSON.stringify(req.body?.data?.team));
-
     const job = extractWorkizJob(req.body);
-    console.log(
-      `[workizWebhook] uuid=${job.uuid} status=${job.status} triggerType=${job.triggerType}`
-    );
 
     if (!job.uuid) {
       return fail(res, 400, new Error("Webhook payload is missing a job UUID (data.uuid)"));
@@ -289,15 +337,13 @@ router.post("/webhooks/workiz/job", logRawBody, checkBearerAuth("WORKIZ_WEBHOOK_
 
     if (nameFallbacks.length) {
       console.warn(
-        "[workizWebhook] Matched tech by NAME fallback (id didn't match):",
-        nameFallbacks.map((r) => `${r.member.name} (${r.member.id})`).join(", ")
+        `[workizWebhook] ${nameFallbacks.length} technician mapping(s) used the name fallback`
       );
     }
     if (unmapped.length) {
-      // Logged so real USR- ids/names can be captured and added to techMap.js.
+      // Keep an actionable count without writing technician PII to logs.
       console.warn(
-        "[workizWebhook] No GHL user mapping for Workiz tech(s):",
-        unmapped.map((r) => `${r.member.name || "?"} (${r.member.id})`).join(", ")
+        `[workizWebhook] ${unmapped.length} technician(s) have no GHL user mapping`
       );
     }
 
@@ -338,3 +384,7 @@ router.post("/webhooks/workiz/job", logRawBody, checkBearerAuth("WORKIZ_WEBHOOK_
 });
 
 export default router;
+
+export function resetBookingDedupeForTest() {
+  processedBookings.clear();
+}
